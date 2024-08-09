@@ -15,7 +15,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	Vector<uint32_t> uuid;
+	TypedArray<uint32_t> uuid;
 	String uuid_stringified;
 
 	UUID();

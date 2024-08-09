@@ -46,9 +46,7 @@ UUID::UUID() {
 }
 
 void UUID::set_uuid(const TypedArray<uint32_t> &p_tarr) {
-	for (int i = 0; i < 16; i++) {
-		uuid.write[i] = p_tarr[i];
-	}
+	uuid.assign(p_tarr);
 }
 
 void UUID::_bind_methods() {
