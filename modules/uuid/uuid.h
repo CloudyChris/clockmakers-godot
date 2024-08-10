@@ -11,21 +11,23 @@
 class UUID : public Resource {
 	GDCLASS(UUID, Resource);
 
+	TypedArray<uint32_t> uuid;
+	String uuid_stringified;
+
 protected:
 	static void _bind_methods();
 
 public:
-	TypedArray<uint32_t> uuid;
-	String uuid_stringified;
-
-	UUID();
-
 	String get_uuid() const { return uuid_stringified; };
 	void set_uuid(const TypedArray<uint32_t> &p_tarr);
+
+	const TypedArray<uint32_t> &_get_uuid() const { return uuid; };
 
 	bool operator==(const UUID &p_uuid) const {
 		return uuid == p_uuid.uuid;
 	};
+
+	UUID();
 };
 
 #endif
