@@ -8,7 +8,8 @@
 #include "core/templates/vector.h"
 #include "core/variant/typed_array.h"
 
-class UUID : public Resource {
+class UUID : public Resource
+{
 	GDCLASS(UUID, Resource);
 
 	TypedArray<uint32_t> uuid;
@@ -22,12 +23,15 @@ public:
 	void set_uuid(const TypedArray<uint32_t> &p_tarr);
 
 	const TypedArray<uint32_t> &_get_uuid() const { return uuid; };
+	void _set_uuid(const UUID &p_uuid);
 
-	bool operator==(const UUID &p_uuid) const {
-		return uuid == p_uuid.uuid;
-	};
+	void update_uuid_string();
+	void generate_uuid();
+
+	_FORCE_INLINE_ bool operator==(const UUID &p_uuid) const { return uuid == p_uuid._get_uuid(); };
 
 	UUID();
+	UUID(const UUID &p_uuid);
 };
 
 #endif
