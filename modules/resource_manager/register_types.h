@@ -2,4 +2,3 @@
 
 void initialize_resource_manager_module(ModuleInitializationLevel p_level);
 void uninitialize_resource_manager_module(ModuleInitializationLevel p_level);
-/* yes, the word in the middle must be the same as the module folder name */
