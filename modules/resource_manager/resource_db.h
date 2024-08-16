@@ -14,53 +14,51 @@ class TrackedResource : public Resource
 {
 	GDCLASS(TrackedResource, Resource);
 
-	UUID uuid;
+	UUID *uuid;
 
 protected:
 	static void _bind_methods();
 
 public:
-	UUID get_uuid() const;
-	void set_uuid(const UUID &p_uuid);
+	UUID *get_uuid() const;
+	void set_uuid(UUID *p_uuid);
 
 	TrackedResource();
-	TrackedResource(const TrackedResource &p_tracked);
+	TrackedResource(TrackedResource *p_tracked);
 };
 
 class FieldData : public Resource
 {
 	GDCLASS(FieldData, Resource);
+
 	String name;
-	Variant::Type type;
 	bool has_default_value;
-	Variant *default_value;
+	Variant default_value;
 
 private:
 	static void _bind_methods();
 
 public:
-	const String &get_name() const { return name; };
-	void set_name(const String &p_name) { name = p_name; };
-	const Variant::Type get_type() const { return type; };
-	void set_type(Variant::Type p_type) { type = p_type; };
-	bool get_has_default_value() const { return has_default_value; };
-	void set_has_default_value(bool p_has_default_value) { has_default_value = p_has_default_value; };
-	Variant *get_default_value() const { return default_value; };
-	void set_default_value(Variant *p_default_value, bool p_set_flag = false)
+	const String &get_field_name() const { return name; };
+	void set_field_name(const String &p_name) { name = p_name; };
+	bool get_field_has_default_value() const { return has_default_value; };
+	void set_field_has_default_value(bool p_has_default_value) { has_default_value = p_has_default_value; };
+	Variant get_field_default_value() const { return default_value; };
+	void set_field_default_value(Variant p_default_value, bool p_set_flag = false)
 	{
-		default_value = has_default_value ? p_default_value : nullptr;
+		default_value = p_default_value;
 		has_default_value = p_set_flag ? true : has_default_value;
 	};
 
 	FieldData();
-	FieldData(const FieldData &p_field_data);
+	FieldData(FieldData *p_field_data);
 };
 
 class GameResourceInterface : public TrackedResource
 {
 	GDCLASS(GameResourceInterface, TrackedResource);
 
-	Vector<FieldData> fields;
+	Vector<FieldData *> fields;
 	// field name, fields index
 	HashMap<String, uint32_t> indices;
 
@@ -69,16 +67,16 @@ protected:
 
 public:
 	bool has_field(const String &p_name) const;
-	FieldData get_field(const String &p_name) const;
-	void _set_field(const String &p_name, Variant::Type p_type, bool p_has_default, Variant *p_default);
-	void set_field(const String &p_name, const FieldData &p_data);
+	FieldData *get_field(const String &p_name) const;
+	void _set_field(const String &p_name, bool p_has_default, Variant p_default);
+	void set_field(const String &p_name, FieldData *p_data);
 
-	const TypedArray<String> get_field_names() const;
+	TypedArray<String> get_field_names() const;
 
-	Vector<FieldData> get_fields() { return fields; };
+	Vector<FieldData *> get_fields() const { return fields; };
 
 	GameResourceInterface();
-	GameResourceInterface(const GameResourceInterface &p_interface);
+	GameResourceInterface(GameResourceInterface *p_interface);
 };
 
 class GameResource : public TrackedResource
@@ -94,22 +92,21 @@ protected:
 
 public:
 	Variant get_data(const String &p_field) const;
-	void set_data(const String &p_field, const Variant &p_data);
+	void set_data(const String &p_field, Variant p_data);
 
-	GameResourceInterface *_get_interface() const;
-	GameResourceInterface get_interface() const;
-	void set_interface(GameResourceInterface *p_interface);
+	GameResourceInterface *get_interface() { return interface; };
+	void set_interface(GameResourceInterface *p_interface) { interface = p_interface; };
 
 	GameResource();
 	GameResource(GameResourceInterface *p_interface);
-	GameResource(const GameResource &p_gres);
+	GameResource(GameResource *p_gres);
 };
 
 class ResourceDB : public TrackedResource
 {
 	GDCLASS(ResourceDB, TrackedResource);
 
-	GameResourceInterface interface;
+	GameResourceInterface *interface;
 	// uuid, row
 	HashMap<String, GameResource *> resources;
 
@@ -117,14 +114,15 @@ protected:
 	static void _bind_methods();
 
 public:
-	GameResource get_game_resource(const UUID &p_uuid) const;
-	void set_game_resource(GameResource p_gameresource);
+	GameResource *get_game_resource(UUID *p_uuid) const;
+	void set_game_resource(GameResource *p_gameresource);
 
-	Variant get_field(const UUID &p_uuid, const String &p_field) const;
-	void set_field(const UUID &p_uuid, const String &p_field, const Variant &p_value);
+	Variant get_field(UUID *p_uuid, const String &p_field) const;
+	void set_field(UUID *p_uuid, const String &p_field, Variant p_value);
 
-	ResourceDB(const GameResourceInterface &p_interface);
-	ResourceDB(const ResourceDB &p_resdb);
+	ResourceDB();
+	ResourceDB(GameResourceInterface *p_interface);
+	ResourceDB(ResourceDB *p_resdb);
 };
 
 #endif
