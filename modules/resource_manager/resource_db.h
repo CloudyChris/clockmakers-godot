@@ -44,11 +44,7 @@ public:
 	bool get_field_has_default_value() const { return has_default_value; };
 	void set_field_has_default_value(bool p_has_default_value) { has_default_value = p_has_default_value; };
 	Variant get_field_default_value() const { return default_value; };
-	void set_field_default_value(Variant p_default_value, bool p_set_flag = false)
-	{
-		default_value = p_default_value;
-		has_default_value = p_set_flag ? true : has_default_value;
-	};
+	void set_field_default_value(Variant p_default_value) { default_value = p_default_value; };
 
 	FieldData();
 	FieldData(FieldData *p_field_data);

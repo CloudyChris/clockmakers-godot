@@ -55,12 +55,12 @@ void FieldData::_bind_methods()
 	ClassDB::bind_method(D_METHOD("get_field_has_default_value"), &FieldData::get_field_has_default_value);
 	ClassDB::bind_method(D_METHOD("set_field_has_default_value", "has_default_value"), &FieldData::set_field_has_default_value);
 	ClassDB::bind_method(D_METHOD("get_field_default_value"), &FieldData::get_field_default_value);
-	ClassDB::bind_method(D_METHOD("set_field_default_value", "default_value", "set_flag"), &FieldData::set_field_default_value);
+	ClassDB::bind_method(D_METHOD("set_field_default_value", "default_value"), &FieldData::set_field_default_value);
 
 	ADD_GROUP("Field Data", "field_data_");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "field_data_field_name"), "set_name", "get_field_name");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "field_data_field_has_default_value"), "set_field_has_default_value", "get_field_has_default_value");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "field_data_field_default_value"), "set_field_default_value", "get_field_default_value");
+	ADD_PROPERTY(PropertyInfo("field_data_field_default_value"), "set_field_default_value", "get_field_default_value");
 }
 
 GameResourceInterface::GameResourceInterface()
@@ -89,7 +89,8 @@ void GameResourceInterface::_set_field(const String &p_name, bool p_has_default_
 
 	FieldData l_data;
 	l_data.set_name(p_name);
-	l_data.set_field_default_value(p_default_value, p_has_default_value);
+	l_data.set_field_has_default_value(p_has_default_value);
+	l_data.set_field_default_value(p_default_value);
 
 	if (indices.has(p_name))
 	{
