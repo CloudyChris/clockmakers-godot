@@ -14,17 +14,17 @@ class TrackedResource : public Resource
 {
 	GDCLASS(TrackedResource, Resource);
 
-	UUID *uuid;
+	Ref<UUID> uuid;
 
 protected:
 	static void _bind_methods();
 
 public:
-	UUID *get_uuid() const;
-	void set_uuid(UUID *p_uuid);
+	Ref<UUID> get_uuid();
+	void set_uuid(Ref<UUID> p_uuid);
 
 	TrackedResource();
-	TrackedResource(TrackedResource *p_tracked);
+	TrackedResource(TrackedResource &p_tracked);
 };
 
 class FieldData : public Resource
@@ -39,22 +39,22 @@ private:
 	static void _bind_methods();
 
 public:
-	const String &get_field_name() const { return name; };
-	void set_field_name(const String &p_name) { name = p_name; };
-	bool get_field_has_default_value() const { return has_default_value; };
+	String get_field_name() { return name; };
+	void set_field_name(String p_name) { name = p_name; };
+	bool get_field_has_default_value() { return has_default_value; };
 	void set_field_has_default_value(bool p_has_default_value) { has_default_value = p_has_default_value; };
-	Variant get_field_default_value() const { return default_value; };
+	Variant get_field_default_value() { return default_value; };
 	void set_field_default_value(Variant p_default_value) { default_value = p_default_value; };
 
 	FieldData();
-	FieldData(FieldData *p_field_data);
+	FieldData(FieldData &p_field_data);
 };
 
 class GameResourceInterface : public TrackedResource
 {
 	GDCLASS(GameResourceInterface, TrackedResource);
 
-	Vector<FieldData *> fields;
+	LocalVector<Ref<FieldData>> fields;
 	// field name, fields index
 	HashMap<String, uint32_t> indices;
 
@@ -62,24 +62,24 @@ protected:
 	static void _bind_methods();
 
 public:
-	bool has_field(const String &p_name) const;
-	FieldData *get_field(const String &p_name) const;
-	void _set_field(const String &p_name, bool p_has_default, Variant p_default);
-	void set_field(const String &p_name, FieldData *p_data);
+	bool has_field(String p_name);
+	Ref<FieldData> get_field(String p_name);
+	void _set_field(String p_name, bool p_has_default, Variant p_default);
+	void set_field(String p_name, Ref<FieldData> p_data);
 
 	TypedArray<String> get_field_names() const;
 
-	Vector<FieldData *> get_fields() const { return fields; };
+	TypedArray<Ref<FieldData>> get_fields();
 
 	GameResourceInterface();
-	GameResourceInterface(GameResourceInterface *p_interface);
+	GameResourceInterface(GameResourceInterface &p_interface);
 };
 
 class GameResource : public TrackedResource
 {
 	GDCLASS(GameResource, TrackedResource);
 
-	GameResourceInterface *interface;
+	Ref<GameResourceInterface> interface;
 	// field name, field value
 	HashMap<String, Variant> data;
 
@@ -87,38 +87,38 @@ protected:
 	static void _bind_methods();
 
 public:
-	Variant get_data(const String &p_field) const;
-	void set_data(const String &p_field, Variant p_data);
+	Variant get_data(String p_field);
+	void set_data(String p_field, Variant p_data);
 
-	GameResourceInterface *get_interface() { return interface; };
-	void set_interface(GameResourceInterface *p_interface) { interface = p_interface; };
+	Ref<GameResourceInterface> get_interface() { return interface; };
+	void set_interface(Ref<GameResourceInterface> p_interface) { interface = p_interface; };
 
 	GameResource();
-	GameResource(GameResourceInterface *p_interface);
-	GameResource(GameResource *p_gres);
+	GameResource(GameResourceInterface &p_interface);
+	GameResource(GameResource &p_gres);
 };
 
 class ResourceDB : public TrackedResource
 {
 	GDCLASS(ResourceDB, TrackedResource);
 
-	GameResourceInterface *interface;
+	Ref<GameResourceInterface> interface;
 	// uuid, row
-	HashMap<String, GameResource *> resources;
+	HashMap<String, Ref<GameResource>> resources;
 
 protected:
 	static void _bind_methods();
 
 public:
-	GameResource *get_game_resource(UUID *p_uuid) const;
-	void set_game_resource(GameResource *p_gameresource);
+	Ref<GameResource> get_game_resource(Ref<UUID> p_uuid);
+	void set_game_resource(Ref<GameResource> p_gameresource);
 
-	Variant get_field(UUID *p_uuid, const String &p_field) const;
-	void set_field(UUID *p_uuid, const String &p_field, Variant p_value);
+	Variant get_field(Ref<UUID> p_uuid, String p_field);
+	void set_field(Ref<UUID> p_uuid, String p_field, Variant p_value);
 
 	ResourceDB();
-	ResourceDB(GameResourceInterface *p_interface);
-	ResourceDB(ResourceDB *p_resdb);
+	ResourceDB(GameResourceInterface &p_interface);
+	ResourceDB(ResourceDB &p_resdb);
 };
 
 #endif

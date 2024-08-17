@@ -10,18 +10,17 @@ TrackedResource::TrackedResource()
 {
 }
 
-TrackedResource::TrackedResource(TrackedResource *p_tracked)
-	: uuid(p_tracked->get_uuid())
+TrackedResource::TrackedResource(TrackedResource &p_tracked)
+	: uuid(p_tracked.get_uuid())
 {
-	uuid->_set_uuid(*p_tracked->get_uuid());
 }
 
-UUID *TrackedResource::get_uuid() const
+Ref<UUID> TrackedResource::get_uuid()
 {
 	return uuid;
 };
 
-void TrackedResource::set_uuid(UUID *p_uuid)
+void TrackedResource::set_uuid(Ref<UUID> p_uuid)
 {
 	uuid->set_uuid(p_uuid->_get_uuid());
 }
@@ -41,10 +40,10 @@ FieldData::FieldData()
 {
 }
 
-FieldData::FieldData(FieldData *p_field_data)
-	: name(p_field_data->name)
-	, has_default_value(p_field_data->has_default_value)
-	, default_value(p_field_data->default_value)
+FieldData::FieldData(FieldData &p_field_data)
+	: name(p_field_data.name)
+	, has_default_value(p_field_data.has_default_value)
+	, default_value(p_field_data.default_value)
 {
 }
 
@@ -67,43 +66,43 @@ GameResourceInterface::GameResourceInterface()
 {
 }
 
-GameResourceInterface::GameResourceInterface(GameResourceInterface *p_interface)
+GameResourceInterface::GameResourceInterface(GameResourceInterface &p_interface)
 {
-	fields.append_array(p_interface->fields);
-	indices = p_interface->indices;
+	fields = p_interface.fields;
+	indices = p_interface.indices;
 }
 
-bool GameResourceInterface::has_field(const String &p_name) const
+bool GameResourceInterface::has_field(String p_name)
 {
 	return indices.has(p_name);
 }
 
-FieldData *GameResourceInterface::get_field(const String &p_name) const
+Ref<FieldData> GameResourceInterface::get_field(String p_name)
 {
-	return fields.get(indices.get(p_name));
+	return fields[indices.get(p_name)];
 }
 
-void GameResourceInterface::_set_field(const String &p_name, bool p_has_default_value, Variant p_default_value)
+void GameResourceInterface::_set_field(String p_name, bool p_has_default_value, Variant p_default_value)
 {
 	const uint l_size = fields.size();
 
-	FieldData l_data;
-	l_data.set_name(p_name);
-	l_data.set_field_has_default_value(p_has_default_value);
-	l_data.set_field_default_value(p_default_value);
+	Ref<FieldData> l_data;
+	l_data->set_name(p_name);
+	l_data->set_field_has_default_value(p_has_default_value);
+	l_data->set_field_default_value(p_default_value);
 
 	if (indices.has(p_name))
 	{
-		fields.set(indices.get(p_name), &l_data);
+		fields[indices.get(p_name)] = l_data;
 		return;
 	}
 
-	fields.insert(l_size, &l_data);
+	fields.insert(l_size, l_data);
 	indices[p_name] = l_size;
 	return;
 }
 
-void GameResourceInterface::set_field(const String &p_name, FieldData *p_data)
+void GameResourceInterface::set_field(String p_name, Ref<FieldData> p_data)
 {
 	_set_field(p_name, p_data->get_field_has_default_value(), p_data->get_field_default_value());
 }
@@ -111,9 +110,9 @@ void GameResourceInterface::set_field(const String &p_name, FieldData *p_data)
 TypedArray<String> GameResourceInterface::get_field_names() const
 {
 	TypedArray<String> l_data;
-	for (FieldData *field : fields)
+	for (int i = 0; i < fields.size(); i++)
 	{
-		l_data.push_back(field->get_name());
+		l_data.push_back(fields[i]->get_name());
 	}
 
 	return l_data;
@@ -133,23 +132,23 @@ GameResource::GameResource()
 	data.clear();
 }
 
-GameResource::GameResource(GameResourceInterface *p_interface)
-	: interface(p_interface)
+GameResource::GameResource(GameResourceInterface &p_interface)
+	: interface(Ref<GameResourceInterface>(&p_interface))
 {
 }
 
-GameResource::GameResource(GameResource *p_gres)
-	: interface(p_gres->get_interface())
-	, data(p_gres->data)
+GameResource::GameResource(GameResource &p_gres)
+	: interface(p_gres.get_interface())
+	, data(p_gres.data)
 {
 }
 
-Variant GameResource::get_data(const String &p_field) const
+Variant GameResource::get_data(String p_field)
 {
 	return data.get(p_field);
 }
 
-void GameResource::set_data(const String &p_field, Variant p_data)
+void GameResource::set_data(String p_field, Variant p_data)
 {
 	data[p_field] = p_data;
 }
@@ -167,33 +166,33 @@ ResourceDB::ResourceDB()
 {
 }
 
-ResourceDB::ResourceDB(GameResourceInterface *p_interface)
-	: interface(p_interface)
+ResourceDB::ResourceDB(GameResourceInterface &p_interface)
+	: interface(Ref<GameResourceInterface>(&p_interface))
 {
 }
 
-ResourceDB::ResourceDB(ResourceDB *p_resdb)
-	: interface(p_resdb->interface)
-	, resources(p_resdb->resources)
+ResourceDB::ResourceDB(ResourceDB &p_resdb)
+	: interface(p_resdb.interface)
+	, resources(p_resdb.resources)
 {
 }
 
-GameResource *ResourceDB::get_game_resource(UUID *p_uuid) const
+Ref<GameResource> ResourceDB::get_game_resource(Ref<UUID> p_uuid)
 {
 	return resources.get(p_uuid->get_uuid());
 }
 
-void ResourceDB::set_game_resource(GameResource *p_gameresource)
+void ResourceDB::set_game_resource(Ref<GameResource> p_gameresource)
 {
 	resources[p_gameresource->get_uuid()->get_uuid()] = p_gameresource;
 }
 
-Variant ResourceDB::get_field(UUID *p_uuid, const String &p_field) const
+Variant ResourceDB::get_field(Ref<UUID> p_uuid, const String p_field)
 {
 	return resources.get(p_uuid->get_uuid())->get_data(p_field);
 }
 
-void ResourceDB::set_field(UUID *p_uuid, const String &p_field, Variant p_value)
+void ResourceDB::set_field(Ref<UUID> p_uuid, String p_field, Variant p_value)
 {
 	resources.get(p_uuid->get_uuid())->set_data(p_field, p_value);
 }
