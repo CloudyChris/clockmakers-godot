@@ -9,17 +9,17 @@
 
 UUID::UUID()
 {
-	generate_uuid();
-	update_uuid_string();
+	_generate_uuid();
+	_update_uuid_string();
 }
 
 UUID::UUID(UUID &p_uuid)
 {
-	uuid = p_uuid._get_uuid();
-	update_uuid_string();
+	uuid = p_uuid.uuid;
+	_update_uuid_string();
 }
 
-void UUID::generate_uuid()
+void UUID::_generate_uuid()
 {
 	Math::randomize();
 
@@ -43,7 +43,7 @@ void UUID::generate_uuid()
 	}
 }
 
-void UUID::update_uuid_string()
+void UUID::_update_uuid_string()
 {
 	uuid_stringified = vformat("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
 							   // low
@@ -60,12 +60,6 @@ void UUID::update_uuid_string()
 
 							   // node
 							   uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]);
-}
-
-void UUID::_set_uuid(TypedArray<uint32_t> p_tarr)
-{
-	uuid.assign(p_tarr);
-	update_uuid_string();
 }
 
 void UUID::set_uuid(String p_string)

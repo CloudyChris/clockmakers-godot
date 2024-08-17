@@ -14,7 +14,7 @@ class TrackedResource : public Resource
 {
 	GDCLASS(TrackedResource, Resource);
 
-	Ref<UUID> uuid;
+	UUID uuid;
 
 protected:
 	static void _bind_methods();
@@ -24,7 +24,6 @@ public:
 	void set_uuid(Ref<UUID> p_uuid);
 
 	TrackedResource();
-	TrackedResource(TrackedResource &p_tracked);
 };
 
 class FieldData : public Resource
@@ -54,7 +53,7 @@ class GameResourceInterface : public TrackedResource
 {
 	GDCLASS(GameResourceInterface, TrackedResource);
 
-	LocalVector<Ref<FieldData>> fields;
+	TypedArray<FieldData> fields;
 	// field name, fields index
 	HashMap<String, uint32_t> indices;
 
@@ -67,10 +66,10 @@ public:
 	void _set_field(String p_name, bool p_has_default, Variant p_default);
 	void set_field(String p_name, Ref<FieldData> p_data);
 
-	TypedArray<String> get_field_names() const;
+	TypedArray<String> get_field_names();
 
-	TypedArray<Ref<FieldData>> get_fields();
-	void set_fields(TypedArray<Ref<FieldData>> p_fields);
+	TypedArray<FieldData> get_fields();
+	void set_fields(TypedArray<FieldData> p_fields);
 
 	GameResourceInterface();
 	GameResourceInterface(GameResourceInterface &p_interface);
@@ -99,7 +98,7 @@ public:
 
 	GameResource();
 	GameResource(GameResourceInterface &p_interface);
-	GameResource(GameResource &p_gres);
+	GameResource(GameResource &p_gameresource);
 };
 
 class ResourceDB : public TrackedResource

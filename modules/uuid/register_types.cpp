@@ -4,8 +4,6 @@
 
 #include "uuid.h"
 
-#include "core/error/error_macros.h"
-
 void initialize_uuid_module(ModuleInitializationLevel p_level)
 {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)

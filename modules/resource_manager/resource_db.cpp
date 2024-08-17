@@ -8,23 +8,16 @@
 
 TrackedResource::TrackedResource()
 {
-	UUID l_uuid = UUID();
-	uuid = Ref<UUID>(&l_uuid);
-}
-
-TrackedResource::TrackedResource(TrackedResource &p_tracked)
-	: uuid(p_tracked.get_uuid())
-{
 }
 
 Ref<UUID> TrackedResource::get_uuid()
 {
-	return uuid;
+	return &uuid;
 };
 
 void TrackedResource::set_uuid(Ref<UUID> p_uuid)
 {
-	uuid->set_uuid(p_uuid->get_uuid());
+	uuid = *p_uuid.ptr();
 }
 
 void TrackedResource::_bind_methods()
@@ -33,7 +26,7 @@ void TrackedResource::_bind_methods()
 	ClassDB::bind_method(D_METHOD("set_uuid", "uuid"), &TrackedResource::set_uuid);
 
 	ADD_GROUP("Tracked Resource", "tracked_resource_");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "tracked_resource_uuid"), "set_uuid", "get_uuid");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "tracked_resource_uuid", PROPERTY_HINT_RESOURCE_TYPE, "UUID", PROPERTY_USAGE_READ_ONLY), "set_uuid", "get_uuid");
 }
 
 FieldData::FieldData()
@@ -61,7 +54,7 @@ void FieldData::_bind_methods()
 	ADD_GROUP("Field Data", "field_data_");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "field_data_field_name"), "set_name", "get_field_name");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "field_data_field_has_default_value"), "set_field_has_default_value", "get_field_has_default_value");
-	ADD_PROPERTY(PropertyInfo("field_data_field_default_value"), "set_field_default_value", "get_field_default_value");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "field_data_field_default_value"), "set_field_default_value", "get_field_default_value");
 }
 
 GameResourceInterface::GameResourceInterface()
@@ -69,9 +62,8 @@ GameResourceInterface::GameResourceInterface()
 }
 
 GameResourceInterface::GameResourceInterface(GameResourceInterface &p_interface)
+	: fields(p_interface.fields)
 {
-	fields = p_interface.fields;
-	indices = p_interface.indices;
 }
 
 bool GameResourceInterface::has_field(String p_name)
@@ -86,22 +78,12 @@ Ref<FieldData> GameResourceInterface::get_field(String p_name)
 
 void GameResourceInterface::_set_field(String p_name, bool p_has_default_value, Variant p_default_value)
 {
-	const uint l_size = fields.size();
-
-	Ref<FieldData> l_data;
-	l_data->set_name(p_name);
-	l_data->set_field_has_default_value(p_has_default_value);
-	l_data->set_field_default_value(p_default_value);
-
 	if (indices.has(p_name))
 	{
-		fields[indices.get(p_name)] = l_data;
-		return;
+		Ref<FieldData> l_field = fields[indices.get(p_name)];
+		l_field->set_field_has_default_value(p_has_default_value);
+		l_field->set_field_default_value(p_default_value);
 	}
-
-	fields.insert(l_size, l_data);
-	indices[p_name] = l_size;
-	return;
 }
 
 void GameResourceInterface::set_field(String p_name, Ref<FieldData> p_data)
@@ -109,15 +91,38 @@ void GameResourceInterface::set_field(String p_name, Ref<FieldData> p_data)
 	_set_field(p_name, p_data->get_field_has_default_value(), p_data->get_field_default_value());
 }
 
-TypedArray<String> GameResourceInterface::get_field_names() const
+TypedArray<String> GameResourceInterface::get_field_names()
 {
 	TypedArray<String> l_data;
 	for (int i = 0; i < fields.size(); i++)
 	{
-		l_data.push_back(fields[i]->get_name());
+		Ref<FieldData> l_field = fields[i];
+		l_data.push_back(l_field->get_field_name());
 	}
 
 	return l_data;
+}
+
+TypedArray<FieldData> GameResourceInterface::get_fields()
+{
+	TypedArray<FieldData> l_arr;
+	for (int i = 0; i < fields.size(); i++)
+	{
+		l_arr.push_back(fields[i]);
+	}
+
+	return l_arr;
+}
+
+void GameResourceInterface::set_fields(TypedArray<FieldData> p_fields)
+{
+	fields.clear();
+	indices.clear();
+	for (int i = 0; i < p_fields.size(); i++)
+	{
+		fields.push_back(p_fields[i]);
+		indices[Ref<FieldData>(p_fields[i])->get_field_name()] = fields.size() - 1;
+	}
 }
 
 void GameResourceInterface::_bind_methods()
@@ -130,7 +135,7 @@ void GameResourceInterface::_bind_methods()
 	ClassDB::bind_method(D_METHOD("set_fields"), &GameResourceInterface::set_fields);
 
 	ADD_GROUP("Game Resource Interface", "gr_interface_");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "gr_interface_fields"), "set_fields", "get_fields");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "gr_interface_fields", PROPERTY_HINT_ARRAY_TYPE, "FieldData"), "set_fields", "get_fields");
 }
 
 GameResource::GameResource()
@@ -141,12 +146,6 @@ GameResource::GameResource()
 
 GameResource::GameResource(GameResourceInterface &p_interface)
 	: interface(Ref<GameResourceInterface>(&p_interface))
-{
-}
-
-GameResource::GameResource(GameResource &p_gres)
-	: interface(p_gres.get_interface())
-	, data(p_gres.data)
 {
 }
 
@@ -193,7 +192,7 @@ void GameResource::_bind_methods()
 	ClassDB::bind_method(D_METHOD("set_data_dict", "dict"), &GameResource::set_data_dict);
 
 	ADD_GROUP("Game Resource", "game_resource_");
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "game_resource_interface"), "set_interface", "get_interface");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "game_resource_interface", PROPERTY_HINT_RESOURCE_TYPE, "GameResourceInterface"), "set_interface", "get_interface");
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "game_resource_data"), "set_data_dict", "get_data_dict");
 }
 
@@ -204,12 +203,6 @@ ResourceDB::ResourceDB()
 
 ResourceDB::ResourceDB(GameResourceInterface &p_interface)
 	: interface(Ref<GameResourceInterface>(&p_interface))
-{
-}
-
-ResourceDB::ResourceDB(ResourceDB &p_resdb)
-	: interface(p_resdb.interface)
-	, resources(p_resdb.resources)
 {
 }
 

@@ -5,8 +5,6 @@
 #include "core/object/class_db.h"
 #include "resource_db.h"
 
-#include "core/error/error_macros.h"
-
 void initialize_resource_manager_module(ModuleInitializationLevel p_level)
 {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
