@@ -13,7 +13,7 @@ UUID::UUID()
 	update_uuid_string();
 }
 
-UUID::UUID(const UUID &p_uuid)
+UUID::UUID(UUID &p_uuid)
 {
 	uuid = p_uuid._get_uuid();
 	update_uuid_string();
@@ -62,14 +62,14 @@ void UUID::update_uuid_string()
 							   uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]);
 }
 
-void UUID::set_uuid(const TypedArray<uint32_t> &p_tarr)
+void UUID::_set_uuid(TypedArray<uint32_t> p_tarr)
 {
 	uuid.assign(p_tarr);
+	update_uuid_string();
 }
 
-void UUID::_set_uuid(const UUID &p_uuid)
+void UUID::set_uuid(String p_string)
 {
-	uuid.assign(p_uuid._get_uuid());
 }
 
 void UUID::_bind_methods()

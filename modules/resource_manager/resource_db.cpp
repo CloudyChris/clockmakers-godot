@@ -4,10 +4,12 @@
 
 #include "core/object/class_db.h"
 #include "core/object/object.h"
+#include "core/variant/dictionary.h"
 
 TrackedResource::TrackedResource()
-	: uuid(nullptr)
 {
+	UUID l_uuid = UUID();
+	uuid = Ref<UUID>(&l_uuid);
 }
 
 TrackedResource::TrackedResource(TrackedResource &p_tracked)
@@ -22,7 +24,7 @@ Ref<UUID> TrackedResource::get_uuid()
 
 void TrackedResource::set_uuid(Ref<UUID> p_uuid)
 {
-	uuid->set_uuid(p_uuid->_get_uuid());
+	uuid->set_uuid(p_uuid->get_uuid());
 }
 
 void TrackedResource::_bind_methods()
@@ -124,6 +126,11 @@ void GameResourceInterface::_bind_methods()
 	ClassDB::bind_method(D_METHOD("get_field", "field_name"), &GameResourceInterface::get_field);
 	ClassDB::bind_method(D_METHOD("set_field", "field"), &GameResourceInterface::set_field);
 	ClassDB::bind_method(D_METHOD("get_field_names"), &GameResourceInterface::get_field_names);
+	ClassDB::bind_method(D_METHOD("get_fields"), &GameResourceInterface::get_fields);
+	ClassDB::bind_method(D_METHOD("set_fields"), &GameResourceInterface::set_fields);
+
+	ADD_GROUP("Game Resource Interface", "gr_interface_");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "gr_interface_fields"), "set_fields", "get_fields");
 }
 
 GameResource::GameResource()
@@ -153,12 +160,41 @@ void GameResource::set_data(String p_field, Variant p_data)
 	data[p_field] = p_data;
 }
 
+Dictionary GameResource::get_data_dict()
+{
+	Dictionary l_dict;
+
+	for (KeyValue<String, Variant> entry : data)
+	{
+		l_dict[entry.key] = entry.value;
+	}
+
+	return l_dict;
+}
+
+void GameResource::set_data_dict(Dictionary p_data)
+{
+	data.clear();
+	List<Variant> l_key_list = List<Variant>();
+	p_data.get_key_list(&l_key_list);
+	for (String entry : l_key_list)
+	{
+		data.insert(entry, p_data[entry]);
+	}
+}
+
 void GameResource::_bind_methods()
 {
 	ClassDB::bind_method(D_METHOD("get_data", "field"), &GameResource::get_data);
 	ClassDB::bind_method(D_METHOD("set_data", "field", "data"), &GameResource::set_data);
 	ClassDB::bind_method(D_METHOD("get_interface"), &GameResource::get_interface);
 	ClassDB::bind_method(D_METHOD("set_interface", "interface"), &GameResource::set_interface);
+	ClassDB::bind_method(D_METHOD("get_data_dict"), &GameResource::get_data_dict);
+	ClassDB::bind_method(D_METHOD("set_data_dict", "dict"), &GameResource::set_data_dict);
+
+	ADD_GROUP("Game Resource", "game_resource_");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "game_resource_interface"), "set_interface", "get_interface");
+	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "game_resource_data"), "set_data_dict", "get_data_dict");
 }
 
 ResourceDB::ResourceDB()

@@ -35,7 +35,7 @@ class FieldData : public Resource
 	bool has_default_value;
 	Variant default_value;
 
-private:
+protected:
 	static void _bind_methods();
 
 public:
@@ -70,6 +70,7 @@ public:
 	TypedArray<String> get_field_names() const;
 
 	TypedArray<Ref<FieldData>> get_fields();
+	void set_fields(TypedArray<Ref<FieldData>> p_fields);
 
 	GameResourceInterface();
 	GameResourceInterface(GameResourceInterface &p_interface);
@@ -89,6 +90,9 @@ protected:
 public:
 	Variant get_data(String p_field);
 	void set_data(String p_field, Variant p_data);
+
+	Dictionary get_data_dict();
+	void set_data_dict(Dictionary p_data);
 
 	Ref<GameResourceInterface> get_interface() { return interface; };
 	void set_interface(Ref<GameResourceInterface> p_interface) { interface = p_interface; };
