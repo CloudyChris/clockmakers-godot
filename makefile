@@ -3,11 +3,7 @@ build: ./SConstruct
 	. $$stdenv/setup; autoPatchelf bin
 
 clean: ./bin/*
-	if [ "$(ls -A ./bin)" ]; then
-		rm ./bin/*
-	else
-		echo "[ OK ] ./bin is empty"
-	fi
+	rm ./bin/*
 	find . -name "*.o" -type f -delete
 
 run: ./bin/godot.linuxbsd.editor.x86_64.llvm
