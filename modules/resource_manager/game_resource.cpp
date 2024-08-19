@@ -8,6 +8,7 @@ void GameResource::_bind_methods()
 {
 	ClassDB::bind_method(D_METHOD("get_field_list"), &GameResource::get_field_list);
 	ClassDB::bind_method(D_METHOD("add_field", "field_name", "property_hint", "type_hint", "property_usage"), &GameResource::add_field);
+	ClassDB::bind_method(D_METHOD("remvoe_field", "field_name"), &GameResource::remove_field);
 	ClassDB::bind_method(D_METHOD("get_field", "field_name"), &GameResource::get_field);
 	ClassDB::bind_method(D_METHOD("set_field", "field_name", "data"), &GameResource::set_field);
 	ClassDB::bind_method(D_METHOD("get_field_property_hint", "field_name"), &GameResource::get_field_property_hint);
