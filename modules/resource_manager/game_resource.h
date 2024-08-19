@@ -39,6 +39,7 @@ public:
 	PackedStringArray get_field_list();
 
 	bool add_field(String p_field_name, Variant::Type p_field_type, PropertyHint p_property_hint = PROPERTY_HINT_NONE, String p_type_hint = "", PropertyUsageFlags p_property_usage = PROPERTY_USAGE_DEFAULT);
+	bool remove_field(String p_field_name);
 
 	Variant get_field(String p_field_name);
 	void set_field(String p_field_name, Variant p_data);

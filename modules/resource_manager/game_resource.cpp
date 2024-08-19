@@ -84,6 +84,21 @@ bool GameResource::add_field(String p_field_name, Variant::Type p_field_type, Pr
 	return true;
 }
 
+bool GameResource::remove_field(String p_field_name)
+{
+	if (field_cache.has(p_field_name))
+	{
+		return false;
+	}
+
+	fields.remove_at(field_cache[p_field_name]);
+	for (int i = 0; i < fields.size(); i++)
+	{
+		field_cache[fields[i].name] = i;
+	}
+	return true;
+}
+
 Variant GameResource::get_field(String p_field_name)
 {
 	return fields[field_cache[p_field_name]].data;
