@@ -5,6 +5,7 @@
 
 #include "core/object/object.h"
 #include "core/templates/hash_map.h"
+#include "core/templates/vector.h"
 #include "core/variant/variant.h"
 #include "tracked_resource.h"
 
@@ -17,35 +18,44 @@ class GameResource : public TrackedResource
 	struct GameResourceField
 	{
 		String name;
-		int property_hint;
+		Variant::Type type;
+		PropertyHint property_hint;
 		String type_hint;
-		int property_usage;
+		PropertyUsageFlags property_usage;
 		Variant data;
 
 		GameResourceField();
-		GameResourceField(String p_name, int p_property_hint, String p_type_hint, int p_property_usage, Variant p_data);
+		GameResourceField(String p_name, Variant::Type p_type, PropertyHint p_property_hint, String p_type_hint, PropertyUsageFlags p_property_usage);
+		GameResourceField(String p_name, Variant::Type p_type, PropertyHint p_property_hint, String p_type_hint, PropertyUsageFlags p_property_usage, Variant p_data);
 	};
 
-	Vector<GameResourceField> fields;
+	mutable Vector<GameResourceField> fields;
 	HashMap<String, GameResourceFieldIndex> field_cache;
 
 protected:
 	static void _bind_methods();
 
 public:
+	PackedStringArray get_field_list();
+
+	bool add_field(String p_field_name, Variant::Type p_field_type, PropertyHint p_property_hint = PROPERTY_HINT_NONE, String p_type_hint = "", PropertyUsageFlags p_property_usage = PROPERTY_USAGE_DEFAULT);
+
 	Variant get_field(String p_field_name);
 	void set_field(String p_field_name, Variant p_data);
 
-	int get_field_property_hint();
-	void set_field_property_hint(int p_property_hint);
+	Variant::Type get_field_type(String p_field_name);
+	void set_field_type(String p_field_name, Variant::Type p_field_type);
 
-	String get_field_type_hint();
-	void set_field_type_hint(String p_type_hint);
+	PropertyHint get_field_property_hint(String p_field_name);
+	void set_field_property_hint(String p_field_name, PropertyHint p_property_hint);
 
-	int get_field_property_usage();
-	void set_field_property_usage(int p_property_usage);
+	String get_field_type_hint(String p_field_name);
+	void set_field_type_hint(String p_field_name, String p_type_hint);
 
-	GameResource();
+	PropertyUsageFlags get_field_property_usage(String p_field_name);
+	void set_field_property_usage(String p_field_name, PropertyUsageFlags p_property_usage);
+
+	GameResource(){};
 	~GameResource();
 };
 

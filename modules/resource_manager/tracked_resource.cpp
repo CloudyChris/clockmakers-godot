@@ -25,7 +25,7 @@ TrackedResource::UUID::UUID()
 
 TrackedResource::UUID::~UUID()
 {
-	if (uuid.is_empty())
+	if (!uuid.is_empty())
 	{
 		uuid.clear();
 	}
@@ -35,7 +35,7 @@ void TrackedResource::UUID::_generate_uuid()
 {
 	Math::randomize();
 
-	if (uuid.size() > 0)
+	if (!uuid.is_empty())
 	{
 		uuid.clear();
 	}
@@ -75,10 +75,6 @@ void TrackedResource::UUID::_update_uuid_string()
 
 							 // node
 							 uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]);
-}
-
-TrackedResource::TrackedResource()
-{
 }
 
 String TrackedResource::get_human_readable_uuid()

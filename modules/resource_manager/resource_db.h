@@ -8,4 +8,6 @@
 #include "core/templates/vector.h"
 #include "core/variant/variant.h"
 
+#include "tracked_resource.h"
+
 #endif // RESOURCE_DB_H

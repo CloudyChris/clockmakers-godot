@@ -34,7 +34,7 @@ public:
 	PackedByteArray get_uuid();
 	void set_uuid(PackedByteArray p_uuid);
 
-	TrackedResource();
+	TrackedResource(){};
 };
 
 #endif
