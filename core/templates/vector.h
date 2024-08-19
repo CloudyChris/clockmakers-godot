@@ -88,6 +88,7 @@ public:
 	_FORCE_INLINE_ bool is_empty() const { return _cowdata.is_empty(); }
 
 	_FORCE_INLINE_ T get(int p_index) { return _cowdata.get(p_index); }
+	_FORCE_INLINE_ T &get_m(int p_index) {return _cowdata.get_m(p_index);}
 	_FORCE_INLINE_ const T &get(int p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(int p_index, const T &p_elem) { _cowdata.set(p_index, p_elem); }
 	_FORCE_INLINE_ int size() const { return _cowdata.size(); }
