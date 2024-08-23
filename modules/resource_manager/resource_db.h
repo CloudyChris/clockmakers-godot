@@ -26,15 +26,19 @@ class ResourceDB : public TrackedResource
 		FieldSpecification(PropertyInfo p_info, bool p_has_default_value, Variant *p_default_value);
 	};
 
-	struct GameResource
+	struct GameResource : public TrackedResource
 	{
 		mutable Vector<Variant> fields;
 		HashMap<String, int> field_cache;
 
 		bool has_field(String p_field_name) const;
+		bool add_field(String p_field_name, Variant p_data);
 		Variant get_field(String p_field_name);
 		void set_field(String p_field_name, Variant p_data);
 		bool remove_field(String p_field_name);
+
+		static GameResource from_dict(Dictionary p_game_resource_dictionary); // TODO: implement
+		static Dictionary to_dict(const GameResource &p_game_resource); // TODO: implement
 
 		GameResource(){};
 		GameResource(const GameResource &p_game_resource);
@@ -62,14 +66,16 @@ public:
 	void set_field(PropertyInfo p_info, bool p_has_default_value = false, Variant *p_default_value = nullptr);
 	void _set_field_bind(Dictionary p_field_specification);
 
-	bool add_resource(GameResource p_game_resource); // TODO: implement
-	bool _add_resource_bind(Dictionary p_game_resource_dictionary); // TODO: implement
-	GameResource get_resource(String p_uuid); // TODO: implement
-	Dictionary _get_resource_bind(String p_uuid); // TODO: implement
-	void set_resource(GameResource p_game_resource); // TODO: implement
-	void _set_resource_bind(Dictionary p_game_resource_dictionary); // TODO: implement
-	bool remove_resource(String p_uuid); // TODO: implement
+	bool add_resource(GameResource p_game_resource);
+	bool _add_resource_bind(Dictionary p_game_resource_dictionary);
+	GameResource get_resource(String p_uuid);
+	Dictionary _get_resource_bind(String p_uuid);
+	void set_resource(GameResource p_game_resource);
+	void _set_resource_bind(Dictionary p_game_resource_dictionary);
+	bool remove_resource(String p_uuid);
+
 	bool has_resource_field(String p_uuid, String p_field_name) const;
+	bool add_resource_field(String p_uuid, String p_field_name, Variant p_data);
 	Variant get_resource_field(String p_uuid, String p_field_name);
 	void set_resource_field(String p_uuid, String p_field_name, Variant p_data);
 	bool remove_resource_field(String p_uuid, String p_field_name);

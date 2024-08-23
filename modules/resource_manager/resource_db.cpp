@@ -65,6 +65,19 @@ bool ResourceDB::GameResource::has_field(String p_field_name) const
 	return field_cache.has(p_field_name);
 }
 
+bool ResourceDB::GameResource::add_field(String p_field_name, Variant p_data)
+{
+	if (field_cache.has(p_field_name))
+	{
+		return false;
+	}
+
+	fields.push_back(p_data);
+	field_cache.insert(p_field_name, fields.size() - 1);
+
+	return true;
+}
+
 Variant ResourceDB::GameResource::get_field(String p_field_name)
 {
 	return fields[field_cache[p_field_name]];
@@ -72,14 +85,7 @@ Variant ResourceDB::GameResource::get_field(String p_field_name)
 
 void ResourceDB::GameResource::set_field(String p_field_name, Variant p_data)
 {
-	if (field_cache.has(p_field_name))
-	{
-		fields.get_m(field_cache[p_field_name]) = p_data;
-		return;
-	}
-
-	fields.push_back(p_data);
-	field_cache.insert(p_field_name, fields.size() - 1);
+	fields.get_m(field_cache[p_field_name]) = p_data;
 }
 
 bool ResourceDB::GameResource::remove_field(String p_field_name)
@@ -103,6 +109,16 @@ bool ResourceDB::GameResource::remove_field(String p_field_name)
 	}
 
 	return true;
+}
+
+ResourceDB::GameResource ResourceDB::GameResource::from_dict(Dictionary p_game_resource_dictionary)
+{
+	// TODO: implement
+}
+
+Dictionary ResourceDB::GameResource::to_dict(const GameResource &p_game_resource)
+{
+	// TODO: implement
 }
 
 ResourceDB::~ResourceDB()
@@ -328,9 +344,79 @@ void ResourceDB::_set_field_bind(Dictionary p_field_specification)
 	}
 }
 
+bool ResourceDB::add_resource(GameResource p_game_resource)
+{
+	if (resource_cache.has(p_game_resource.get_human_readable_uuid()))
+	{
+		return false;
+	}
+
+	resources.push_back(p_game_resource);
+	resource_cache.insert(p_game_resource.get_human_readable_uuid(), resources.size() - 1);
+
+	return true;
+}
+
+bool ResourceDB::_add_resource_bind(Dictionary p_game_resource_dictionary)
+{
+	GameResource l_game_resource = GameResource::from_dict(p_game_resource_dictionary);
+
+	return add_resource(l_game_resource);
+}
+
+ResourceDB::GameResource ResourceDB::get_resource(String p_uuid)
+{
+	return resources.get_m(resource_cache[p_uuid]);
+}
+
+Dictionary ResourceDB::_get_resource_bind(String p_uuid)
+{
+	return GameResource::to_dict(resources.get_m(resource_cache[p_uuid]));
+}
+
+void ResourceDB::set_resource(GameResource p_game_resource)
+{
+	GameResource &l_game_resource = resources.get_m(resource_cache[p_game_resource.get_human_readable_uuid()]);
+	l_game_resource.fields = p_game_resource.fields;
+	l_game_resource.field_cache = p_game_resource.field_cache;
+}
+
+void ResourceDB::_set_resource_bind(Dictionary p_game_resource_dictionary)
+{
+	set_resource(GameResource::from_dict(p_game_resource_dictionary));
+}
+
+bool ResourceDB::remove_resource(String p_uuid)
+{
+	if (!resource_cache.has(p_uuid))
+	{
+		return false;
+	}
+
+	resources.remove_at(resource_cache[p_uuid]);
+
+	int l_deleted_index = resource_cache[p_uuid];
+	resource_cache.erase(p_uuid);
+
+	for (KeyValue<String, int> entry : resource_cache)
+	{
+		if (entry.value > l_deleted_index)
+		{
+			resource_cache[entry.key] = entry.value - 1;
+		}
+	}
+
+	return true;
+}
+
 bool ResourceDB::has_resource_field(String p_uuid, String p_field_name) const
 {
 	return resources[resource_cache[p_uuid]].has_field(p_field_name);
+}
+
+bool ResourceDB::add_resource_field(String p_uuid, String p_field_name, Variant p_data)
+{
+	return resources.get_m(resource_cache[p_uuid]).add_field(p_field_name, p_data);
 }
 
 Variant ResourceDB::get_resource_field(String p_uuid, String p_field_name)
