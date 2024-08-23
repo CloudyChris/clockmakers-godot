@@ -3,6 +3,7 @@
 #include "register_types.h"
 
 #include "core/object/class_db.h"
+#include "resource_db.h"
 #include "tracked_resource.h"
 
 void initialize_resource_manager_module(ModuleInitializationLevel p_level)
@@ -13,6 +14,7 @@ void initialize_resource_manager_module(ModuleInitializationLevel p_level)
 	}
 
 	GDREGISTER_CLASS(TrackedResource);
+	GDREGISTER_CLASS(ResourceDB);
 }
 
 void uninitialize_resource_manager_module(ModuleInitializationLevel p_level)

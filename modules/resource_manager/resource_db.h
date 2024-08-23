@@ -15,19 +15,15 @@ class ResourceDB : public TrackedResource
 {
 	GDCLASS(ResourceDB, TrackedResource);
 
-	struct GameResourceFieldSpecification
+	struct FieldSpecification
 	{
-		String name;
-		Variant::Type type;
-		PropertyHint property_hint;
-		String type_hint;
-		PropertyUsageFlags property_usage;
+		PropertyInfo info;
+		bool has_default_value = false;
+		Variant default_value;
 
-		static Variant::Type typestring_to_enum(String p_typestring);
-		static String enum_to_typestring(Variant::Type p_type);
-
-		GameResourceFieldSpecification();
-		GameResourceFieldSpecification(String p_name, Variant::Type p_type, PropertyHint p_property_hint, String p_type_hint, PropertyUsageFlags p_property_usage);
+		FieldSpecification();
+		FieldSpecification(const FieldSpecification &p_field_specification);
+		FieldSpecification(PropertyInfo p_info, bool p_has_default_value, Variant *p_default_value);
 	};
 
 	struct GameResource
@@ -41,10 +37,11 @@ class ResourceDB : public TrackedResource
 		bool remove_field(String p_field_name);
 
 		GameResource(){};
+		GameResource(const GameResource &p_game_resource);
 		~GameResource();
 	};
 
-	mutable Vector<GameResourceFieldSpecification> fields;
+	mutable Vector<FieldSpecification> fields;
 	HashMap<String, int> field_cache;
 
 	mutable Vector<GameResource> resources;
@@ -55,29 +52,29 @@ protected:
 
 public:
 	PackedStringArray get_field_list() const;
-
 	bool has_field(String p_field_name) const;
-	bool add_field(String p_field_name, String p_field_typestring = "NIL", PropertyHint p_property_hint = PROPERTY_HINT_NONE, String p_type_hint = "", PropertyUsageFlags p_property_usage = PROPERTY_USAGE_DEFAULT);
+	bool add_field(PropertyInfo p_info, bool p_has_default_value = false, Variant *p_default_value = nullptr);
+	bool _add_field_bind(Dictionary p_field_specification);
 	bool remove_field(String p_field_name);
 
-	String get_field_typestring(String p_field_name);
-	void set_field_typestring(String p_field_name, String p_field_typestring);
+	const ResourceDB::FieldSpecification &get_field(String p_field_name) const;
+	Dictionary _get_field_bind(String p_field_name);
+	void set_field(PropertyInfo p_info, bool p_has_default_value = false, Variant *p_default_value = nullptr);
+	void _set_field_bind(Dictionary p_field_specification);
 
-	PropertyHint get_field_property_hint(String p_field_name);
-	void set_field_property_hint(String p_field_name, PropertyHint p_property_hint);
-
-	String get_field_type_hint(String p_field_name);
-	void set_field_type_hint(String p_field_name, String p_type_hint);
-
-	PropertyUsageFlags get_field_property_usage(String p_field_name);
-	void set_field_property_usage(String p_field_name, PropertyUsageFlags p_property_usage);
-
+	bool add_resource(GameResource p_game_resource); // TODO: implement
+	bool _add_resource_bind(Dictionary p_game_resource_dictionary); // TODO: implement
+	GameResource get_resource(String p_uuid); // TODO: implement
+	Dictionary _get_resource_bind(String p_uuid); // TODO: implement
+	void set_resource(GameResource p_game_resource); // TODO: implement
+	void _set_resource_bind(Dictionary p_game_resource_dictionary); // TODO: implement
+	bool remove_resource(String p_uuid); // TODO: implement
 	bool has_resource_field(String p_uuid, String p_field_name) const;
 	Variant get_resource_field(String p_uuid, String p_field_name);
 	void set_resource_field(String p_uuid, String p_field_name, Variant p_data);
 	bool remove_resource_field(String p_uuid, String p_field_name);
 
-	ResourceDB();
+	ResourceDB(){};
 	~ResourceDB();
 };
 

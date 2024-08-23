@@ -9,12 +9,12 @@ void TrackedResource::_bind_methods()
 {
 	ClassDB::bind_method(D_METHOD("get_uuid"), &TrackedResource::get_uuid);
 	ClassDB::bind_method(D_METHOD("set_uuid", "uuid"), &TrackedResource::set_uuid);
-	ClassDB::bind_method(D_METHOD("get_human_readable_uuid"), &TrackedResource::get_uuid);
-	ClassDB::bind_method(D_METHOD("set_human_readable_uuid", "uuid_string"), &TrackedResource::set_uuid);
+	ClassDB::bind_method(D_METHOD("get_human_readable_uuid"), &TrackedResource::get_human_readable_uuid);
+	ClassDB::bind_method(D_METHOD("set_human_readable_uuid", "uuid_string"), &TrackedResource::set_human_readable_uuid);
 
 	ADD_GROUP("Tracked Resource", "trackedresource_");
-	ADD_PROPERTY(PropertyInfo(Variant::STRING, "trackedresource_uuid_human_readable", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_READ_ONLY), "set_human_readable_uuid", "get_human_readable_uuid");
-	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "trackedresource_uuid_uuid"), "set_uuid", "get_uuid");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "trackedresource_uuid_string", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT), "set_human_readable_uuid", "get_human_readable_uuid");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "trackedresource_uuid"), "set_uuid", "get_uuid");
 }
 
 TrackedResource::UUID::UUID()
@@ -85,6 +85,7 @@ String TrackedResource::get_human_readable_uuid()
 void TrackedResource::set_human_readable_uuid(String p_uuid_string)
 {
 	uuid.human_readable = p_uuid_string;
+	uuid._update_uuid_string();
 }
 
 PackedByteArray TrackedResource::get_uuid()
