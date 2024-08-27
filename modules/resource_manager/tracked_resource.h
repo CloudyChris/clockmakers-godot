@@ -10,6 +10,7 @@ class TrackedResource : public Resource
 {
 	GDCLASS(TrackedResource, Resource);
 
+protected:
 	struct UUID
 	{
 		String human_readable;
@@ -24,7 +25,6 @@ class TrackedResource : public Resource
 
 	UUID uuid;
 
-protected:
 	static void _bind_methods();
 
 public:

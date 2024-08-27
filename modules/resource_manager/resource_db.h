@@ -21,6 +21,9 @@ class ResourceDB : public TrackedResource
 		bool has_default_value = false;
 		Variant default_value;
 
+		static FieldSpecification from_dict(Dictionary p_field_specification);
+		static Dictionary to_dict(FieldSpecification p_field_specification);
+
 		FieldSpecification();
 		FieldSpecification(const FieldSpecification &p_field_specification);
 		FieldSpecification(PropertyInfo p_info, bool p_has_default_value, Variant *p_default_value);
@@ -28,6 +31,7 @@ class ResourceDB : public TrackedResource
 
 	struct GameResource : public TrackedResource
 	{
+		String resource_type;
 		mutable Vector<Variant> fields;
 		HashMap<String, int> field_cache;
 
@@ -45,10 +49,10 @@ class ResourceDB : public TrackedResource
 		~GameResource();
 	};
 
-	mutable Vector<FieldSpecification> fields;
+	mutable Vector<FieldSpecification> fields; // do we really need both a vector and a hashmap?
 	HashMap<String, int> field_cache;
 
-	mutable Vector<GameResource> resources;
+	mutable LocalVector<GameResource *> resources; // ARCTODO: change to just HashMap<GameResource *> and if you really need it a LocalVector<GameResource *> like node::Data::children
 	HashMap<String, int> resource_cache;
 
 protected:
@@ -58,17 +62,20 @@ public:
 	PackedStringArray get_field_list() const;
 	bool has_field(String p_field_name) const;
 	bool add_field(PropertyInfo p_info, bool p_has_default_value = false, Variant *p_default_value = nullptr);
+	bool add_field(const FieldSpecification &p_field_specification);
 	bool _add_field_bind(Dictionary p_field_specification);
-	bool remove_field(String p_field_name);
-
 	const ResourceDB::FieldSpecification &get_field(String p_field_name) const;
 	Dictionary _get_field_bind(String p_field_name);
 	void set_field(PropertyInfo p_info, bool p_has_default_value = false, Variant *p_default_value = nullptr);
+	void set_field(const FieldSpecification &p_field_specification);
 	void _set_field_bind(Dictionary p_field_specification);
+	bool remove_field(String p_field_name);
 
+	bool has_resource(String p_uuid) const;
 	bool add_resource(GameResource p_game_resource);
 	bool _add_resource_bind(Dictionary p_game_resource_dictionary);
-	GameResource get_resource(String p_uuid);
+	const GameResource &get_resource(String p_uuid) const;
+	GameResource &get_resource_m(String p_uuid);
 	Dictionary _get_resource_bind(String p_uuid);
 	void set_resource(GameResource p_game_resource);
 	void _set_resource_bind(Dictionary p_game_resource_dictionary);
