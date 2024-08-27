@@ -46,9 +46,11 @@
 #include <initializer_list>
 
 template <typename T>
-class VectorWriteProxy {
+class VectorWriteProxy
+{
 public:
-	_FORCE_INLINE_ T &operator[](typename CowData<T>::Size p_index) {
+	_FORCE_INLINE_ T &operator[](typename CowData<T>::Size p_index)
+	{
 		CRASH_BAD_INDEX(p_index, ((Vector<T> *)(this))->_cowdata.size());
 
 		return ((Vector<T> *)(this))->_cowdata.ptrw()[p_index];
@@ -56,7 +58,8 @@ public:
 };
 
 template <typename T>
-class Vector {
+class Vector
+{
 	friend class VectorWriteProxy<T>;
 
 public:
@@ -72,9 +75,11 @@ public:
 	void fill(T p_elem);
 
 	void remove_at(Size p_index) { _cowdata.remove_at(p_index); }
-	_FORCE_INLINE_ bool erase(const T &p_val) {
+	_FORCE_INLINE_ bool erase(const T &p_val)
+	{
 		Size idx = find(p_val);
-		if (idx >= 0) {
+		if (idx >= 0)
+		{
 			remove_at(idx);
 			return true;
 		}
@@ -89,6 +94,7 @@ public:
 	_FORCE_INLINE_ bool is_empty() const { return _cowdata.is_empty(); }
 
 	_FORCE_INLINE_ T get(Size p_index) { return _cowdata.get(p_index); }
+	_FORCE_INLINE_ T &get_m(int p_index) { return _cowdata.get_m(p_index); }
 	_FORCE_INLINE_ const T &get(Size p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(Size p_index, const T &p_elem) { _cowdata.set(p_index, p_elem); }
 	_FORCE_INLINE_ Size size() const { return _cowdata.size(); }
@@ -104,14 +110,17 @@ public:
 
 	_FORCE_INLINE_ bool has(const T &p_val) const { return find(p_val) != -1; }
 
-	void sort() {
+	void sort()
+	{
 		sort_custom<_DefaultComparator<T>>();
 	}
 
 	template <typename Comparator, bool Validate = SORT_ARRAY_VALIDATE_ENABLED, typename... Args>
-	void sort_custom(Args &&...args) {
+	void sort_custom(Args &&...args)
+	{
 		Size len = _cowdata.size();
-		if (len == 0) {
+		if (len == 0)
+		{
 			return;
 		}
 
@@ -120,37 +129,46 @@ public:
 		sorter.sort(data, len);
 	}
 
-	Size bsearch(const T &p_value, bool p_before) {
+	Size bsearch(const T &p_value, bool p_before)
+	{
 		return bsearch_custom<_DefaultComparator<T>>(p_value, p_before);
 	}
 
 	template <typename Comparator, typename Value, typename... Args>
-	Size bsearch_custom(const Value &p_value, bool p_before, Args &&...args) {
+	Size bsearch_custom(const Value &p_value, bool p_before, Args &&...args)
+	{
 		SearchArray<T, Comparator> search{ args... };
 		return search.bisect(ptrw(), size(), p_value, p_before);
 	}
 
-	Vector<T> duplicate() {
+	Vector<T> duplicate()
+	{
 		return *this;
 	}
 
-	void ordered_insert(const T &p_val) {
+	void ordered_insert(const T &p_val)
+	{
 		Size i;
-		for (i = 0; i < _cowdata.size(); i++) {
-			if (p_val < operator[](i)) {
+		for (i = 0; i < _cowdata.size(); i++)
+		{
+			if (p_val < operator[](i))
+			{
 				break;
 			}
 		}
 		insert(i, p_val);
 	}
 
-	inline void operator=(const Vector &p_from) {
+	inline void operator=(const Vector &p_from)
+	{
 		_cowdata._ref(p_from._cowdata);
 	}
 
-	Vector<uint8_t> to_byte_array() const {
+	Vector<uint8_t> to_byte_array() const
+	{
 		Vector<uint8_t> ret;
-		if (is_empty()) {
+		if (is_empty())
+		{
 			return ret;
 		}
 		ret.resize(size() * sizeof(T));
@@ -158,17 +176,20 @@ public:
 		return ret;
 	}
 
-	Vector<T> slice(Size p_begin, Size p_end = CowData<T>::MAX_INT) const {
+	Vector<T> slice(Size p_begin, Size p_end = CowData<T>::MAX_INT) const
+	{
 		Vector<T> result;
 
 		const Size s = size();
 
 		Size begin = CLAMP(p_begin, -s, s);
-		if (begin < 0) {
+		if (begin < 0)
+		{
 			begin += s;
 		}
 		Size end = CLAMP(p_end, -s, s);
-		if (end < 0) {
+		if (end < 0)
+		{
 			end += s;
 		}
 
@@ -179,49 +200,62 @@ public:
 
 		const T *const r = ptr();
 		T *const w = result.ptrw();
-		for (Size i = 0; i < result_size; ++i) {
+		for (Size i = 0; i < result_size; ++i)
+		{
 			w[i] = r[begin + i];
 		}
 
 		return result;
 	}
 
-	bool operator==(const Vector<T> &p_arr) const {
+	bool operator==(const Vector<T> &p_arr) const
+	{
 		Size s = size();
-		if (s != p_arr.size()) {
+		if (s != p_arr.size())
+		{
 			return false;
 		}
-		for (Size i = 0; i < s; i++) {
-			if (operator[](i) != p_arr[i]) {
+		for (Size i = 0; i < s; i++)
+		{
+			if (operator[](i) != p_arr[i])
+			{
 				return false;
 			}
 		}
 		return true;
 	}
 
-	bool operator!=(const Vector<T> &p_arr) const {
+	bool operator!=(const Vector<T> &p_arr) const
+	{
 		Size s = size();
-		if (s != p_arr.size()) {
+		if (s != p_arr.size())
+		{
 			return true;
 		}
-		for (Size i = 0; i < s; i++) {
-			if (operator[](i) != p_arr[i]) {
+		for (Size i = 0; i < s; i++)
+		{
+			if (operator[](i) != p_arr[i])
+			{
 				return true;
 			}
 		}
 		return false;
 	}
 
-	struct Iterator {
-		_FORCE_INLINE_ T &operator*() const {
+	struct Iterator
+	{
+		_FORCE_INLINE_ T &operator*() const
+		{
 			return *elem_ptr;
 		}
 		_FORCE_INLINE_ T *operator->() const { return elem_ptr; }
-		_FORCE_INLINE_ Iterator &operator++() {
+		_FORCE_INLINE_ Iterator &operator++()
+		{
 			elem_ptr++;
 			return *this;
 		}
-		_FORCE_INLINE_ Iterator &operator--() {
+		_FORCE_INLINE_ Iterator &operator--()
+		{
 			elem_ptr--;
 			return *this;
 		}
@@ -237,16 +271,20 @@ public:
 		T *elem_ptr = nullptr;
 	};
 
-	struct ConstIterator {
-		_FORCE_INLINE_ const T &operator*() const {
+	struct ConstIterator
+	{
+		_FORCE_INLINE_ const T &operator*() const
+		{
 			return *elem_ptr;
 		}
 		_FORCE_INLINE_ const T *operator->() const { return elem_ptr; }
-		_FORCE_INLINE_ ConstIterator &operator++() {
+		_FORCE_INLINE_ ConstIterator &operator++()
+		{
 			elem_ptr++;
 			return *this;
 		}
-		_FORCE_INLINE_ ConstIterator &operator--() {
+		_FORCE_INLINE_ ConstIterator &operator--()
+		{
 			elem_ptr--;
 			return *this;
 		}
@@ -262,27 +300,33 @@ public:
 		const T *elem_ptr = nullptr;
 	};
 
-	_FORCE_INLINE_ Iterator begin() {
+	_FORCE_INLINE_ Iterator begin()
+	{
 		return Iterator(ptrw());
 	}
-	_FORCE_INLINE_ Iterator end() {
+	_FORCE_INLINE_ Iterator end()
+	{
 		return Iterator(ptrw() + size());
 	}
 
-	_FORCE_INLINE_ ConstIterator begin() const {
+	_FORCE_INLINE_ ConstIterator begin() const
+	{
 		return ConstIterator(ptr());
 	}
-	_FORCE_INLINE_ ConstIterator end() const {
+	_FORCE_INLINE_ ConstIterator end() const
+	{
 		return ConstIterator(ptr() + size());
 	}
 
 	_FORCE_INLINE_ Vector() {}
-	_FORCE_INLINE_ Vector(std::initializer_list<T> p_init) {
+	_FORCE_INLINE_ Vector(std::initializer_list<T> p_init)
+	{
 		Error err = _cowdata.resize(p_init.size());
 		ERR_FAIL_COND(err);
 
 		Size i = 0;
-		for (const T &element : p_init) {
+		for (const T &element : p_init)
+		{
 			_cowdata.set(i++, element);
 		}
 	}
@@ -292,28 +336,34 @@ public:
 };
 
 template <typename T>
-void Vector<T>::reverse() {
-	for (Size i = 0; i < size() / 2; i++) {
+void Vector<T>::reverse()
+{
+	for (Size i = 0; i < size() / 2; i++)
+	{
 		T *p = ptrw();
 		SWAP(p[i], p[size() - i - 1]);
 	}
 }
 
 template <typename T>
-void Vector<T>::append_array(const Vector<T> &p_other) {
+void Vector<T>::append_array(const Vector<T> &p_other)
+{
 	const Size ds = p_other.size();
-	if (ds == 0) {
+	if (ds == 0)
+	{
 		return;
 	}
 	const Size bs = size();
 	resize(bs + ds);
-	for (Size i = 0; i < ds; ++i) {
+	for (Size i = 0; i < ds; ++i)
+	{
 		ptrw()[bs + i] = p_other[i];
 	}
 }
 
 template <typename T>
-bool Vector<T>::push_back(T p_elem) {
+bool Vector<T>::push_back(T p_elem)
+{
 	Error err = resize(size() + 1);
 	ERR_FAIL_COND_V(err, true);
 	set(size() - 1, p_elem);
@@ -322,9 +372,11 @@ bool Vector<T>::push_back(T p_elem) {
 }
 
 template <typename T>
-void Vector<T>::fill(T p_elem) {
+void Vector<T>::fill(T p_elem)
+{
 	T *p = ptrw();
-	for (Size i = 0; i < size(); i++) {
+	for (Size i = 0; i < size(); i++)
+	{
 		p[i] = p_elem;
 	}
 }
