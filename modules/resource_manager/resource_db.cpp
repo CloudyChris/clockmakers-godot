@@ -53,7 +53,7 @@ ResourceDB::FieldSpecification ResourceDB::FieldSpecification::from_dict(Diction
 	FieldSpecification l_field_specification;
 	PropertyInfo l_info;
 
-	CRASH_COND(p_field_specification.has("info"));
+	CRASH_COND((!p_field_specification.has("info")));
 
 	l_field_specification.info = PropertyInfo::from_dict(p_field_specification["info"]);
 
