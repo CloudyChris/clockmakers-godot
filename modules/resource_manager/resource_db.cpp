@@ -94,12 +94,12 @@ ResourceDB::GameResource::GameResource(const GameResource &p_game_resource)
 
 ResourceDB::GameResource::~GameResource()
 {
-	if (likely(!fields.is_empty()))
+	if (!fields.is_empty())
 	{
 		fields.clear();
 	}
 
-	if (likely(!field_cache.is_empty()))
+	if (!field_cache.is_empty())
 	{
 		field_cache.clear();
 	}
@@ -112,7 +112,7 @@ bool ResourceDB::GameResource::has_field(String p_field_name) const
 
 bool ResourceDB::GameResource::add_field(String p_field_name, Variant p_data)
 {
-	if (unlikely(field_cache.has(p_field_name)))
+	if (field_cache.has(p_field_name))
 	{
 		return false;
 	}
@@ -135,7 +135,7 @@ void ResourceDB::GameResource::set_field(String p_field_name, Variant p_data)
 
 bool ResourceDB::GameResource::remove_field(String p_field_name)
 {
-	if (unlikely(!field_cache.has(p_field_name)))
+	if (!field_cache.has(p_field_name))
 	{
 		return false;
 	}
@@ -190,22 +190,22 @@ Dictionary ResourceDB::GameResource::to_dict(const GameResource &p_game_resource
 
 ResourceDB::~ResourceDB()
 {
-	if (likely(!fields.is_empty()))
+	if (!fields.is_empty())
 	{
 		fields.clear();
 	}
 
-	if (likely(!field_cache.is_empty()))
+	if (!field_cache.is_empty())
 	{
 		field_cache.clear();
 	}
 
-	if (likely(!resources.is_empty()))
+	if (!resources.is_empty())
 	{
 		resources.clear();
 	}
 
-	if (likely(!resource_cache.is_empty()))
+	if (!resource_cache.is_empty())
 	{
 		resource_cache.clear();
 	}
@@ -236,12 +236,12 @@ bool ResourceDB::add_field(PropertyInfo p_info, bool p_has_default_value, Varian
 
 bool ResourceDB::add_field(const FieldSpecification &p_field_specification)
 {
-	if (unlikely(p_field_specification.info.name == ""))
+	if (p_field_specification.info.name == "")
 	{
 		return false;
 	}
 
-	if (unlikely(field_cache.has(p_field_specification.info.name)))
+	if (field_cache.has(p_field_specification.info.name))
 	{
 		return false;
 	}
@@ -258,7 +258,7 @@ bool ResourceDB::_add_field_bind(Dictionary p_field_specification)
 
 bool ResourceDB::remove_field(String p_field_name)
 {
-	if (unlikely(!field_cache.has(p_field_name)))
+	if (!field_cache.has(p_field_name))
 	{
 		return false;
 	}
@@ -328,7 +328,7 @@ bool ResourceDB::has_resource(String p_uuid) const
 
 bool ResourceDB::add_resource(GameResource p_game_resource)
 {
-	if (unlikely(resource_cache.has(p_game_resource.get_human_readable_uuid())))
+	if (resource_cache.has(p_game_resource.get_human_readable_uuid()))
 	{
 		return false;
 	}
@@ -375,7 +375,7 @@ void ResourceDB::_set_resource_bind(Dictionary p_game_resource_dictionary)
 
 bool ResourceDB::remove_resource(String p_uuid)
 {
-	if (unlikely(!resource_cache.has(p_uuid)))
+	if (!resource_cache.has(p_uuid))
 	{
 		return false;
 	}
