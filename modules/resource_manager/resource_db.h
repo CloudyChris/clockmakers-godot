@@ -22,7 +22,8 @@ class ResourceDB : public TrackedResource
 		Variant default_value;
 
 		static FieldSpecification from_dict(Dictionary p_field_specification);
-		static Dictionary to_dict(FieldSpecification p_field_specification);
+
+		operator Dictionary() const;
 
 		FieldSpecification();
 		FieldSpecification(const FieldSpecification &p_field_specification);
@@ -41,8 +42,9 @@ class ResourceDB : public TrackedResource
 		void set_field(String p_field_name, Variant p_data);
 		bool remove_field(String p_field_name);
 
-		static GameResource from_dict(Dictionary p_game_resource_dictionary); // TODO: implement
-		static Dictionary to_dict(const GameResource &p_game_resource); // TODO: implement
+		static GameResource from_dict(Dictionary p_game_resource_dictionary);
+
+		operator Dictionary() const;
 
 		GameResource(){};
 		GameResource(const GameResource &p_game_resource);

@@ -166,7 +166,6 @@ struct PropertyInfo
 	operator Dictionary() const;
 
 	static PropertyInfo from_dict(const Dictionary &p_dict);
-	static Dictionary to_dict(const PropertyInfo &p_pi);
 
 	PropertyInfo() {}
 

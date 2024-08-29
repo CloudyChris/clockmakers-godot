@@ -115,19 +115,7 @@ PropertyInfo PropertyInfo::from_dict(const Dictionary &p_dict)
 
 	return pi;
 }
-Dictionary PropertyInfo::to_dict(const PropertyInfo &p_pi)
-{
-	Dictionary dict;
 
-	dict["type"] = p_pi.type;
-	dict["name"] = p_pi.name;
-	dict["class_name"] = p_pi.class_name;
-	dict["hint"] = p_pi.hint;
-	dict["hint_string"] = p_pi.hint_string;
-	dict["usage"] = p_pi.usage;
-
-	return dict;
-}
 TypedArray<Dictionary> convert_property_list(const List<PropertyInfo> *p_list)
 {
 	TypedArray<Dictionary> va;

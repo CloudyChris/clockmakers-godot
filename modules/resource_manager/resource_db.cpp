@@ -51,14 +51,23 @@ ResourceDB::FieldSpecification::FieldSpecification(PropertyInfo p_info, bool p_h
 ResourceDB::FieldSpecification ResourceDB::FieldSpecification::from_dict(Dictionary p_field_specification)
 {
 	FieldSpecification l_field_specification;
-	PropertyInfo l_info;
 
-	CRASH_COND((!p_field_specification.has("info")));
+	if (!p_field_specification.has("info"))
+	{
+		return FieldSpecification();
+	}
 
 	l_field_specification.info = PropertyInfo::from_dict(p_field_specification["info"]);
 
-	CRASH_COND(l_info.name == "");
-	CRASH_COND(l_info.type == Variant::NIL || l_info.type == Variant::VARIANT_MAX);
+	if (l_field_specification.info.name == "")
+	{
+		return FieldSpecification();
+	}
+
+	if (l_field_specification.info.type == Variant::NIL || l_field_specification.info.type == Variant::VARIANT_MAX)
+	{
+		return FieldSpecification();
+	}
 
 	l_field_specification.has_default_value = p_field_specification.has("has_default_value") ? bool(p_field_specification["has_default_value"]) : false;
 
@@ -70,14 +79,13 @@ ResourceDB::FieldSpecification ResourceDB::FieldSpecification::from_dict(Diction
 	return l_field_specification;
 }
 
-Dictionary ResourceDB::FieldSpecification::to_dict(FieldSpecification p_field_specification)
+ResourceDB::FieldSpecification::operator Dictionary() const
 {
-	Dictionary l_field_specification_dictionary, l_pi_dict;
-	l_pi_dict = p_field_specification.info.to_dict(p_field_specification.info);
+	Dictionary l_field_specification_dictionary;
 
-	l_field_specification_dictionary["info"] = l_pi_dict;
-	l_field_specification_dictionary["has_default_value"] = p_field_specification.has_default_value;
-	l_field_specification_dictionary["default_value"] = p_field_specification.default_value;
+	l_field_specification_dictionary["info"] = static_cast<Dictionary>(info);
+	l_field_specification_dictionary["has_default_value"] = has_default_value;
+	l_field_specification_dictionary["default_value"] = default_value;
 
 	return l_field_specification_dictionary;
 }
@@ -173,16 +181,16 @@ ResourceDB::GameResource ResourceDB::GameResource::from_dict(Dictionary p_game_r
 	return l_game_resource;
 }
 
-Dictionary ResourceDB::GameResource::to_dict(const GameResource &p_game_resource)
+ResourceDB::GameResource::operator Dictionary() const
 {
 	Dictionary l_game_resource_dictionary, l_game_resource_fields_dictionary;
 
-	for (KeyValue<String, int> entry : p_game_resource.field_cache)
+	for (KeyValue<String, int> entry : field_cache)
 	{
-		l_game_resource_fields_dictionary[entry.key] = p_game_resource.fields[entry.value];
+		l_game_resource_fields_dictionary[entry.key] = fields[entry.value];
 	}
 
-	l_game_resource_dictionary["resource_type"] = p_game_resource.resource_type;
+	l_game_resource_dictionary["resource_type"] = resource_type;
 	l_game_resource_dictionary["fields"] = l_game_resource_fields_dictionary;
 
 	return l_game_resource_dictionary;
@@ -236,7 +244,7 @@ bool ResourceDB::add_field(PropertyInfo p_info, bool p_has_default_value, Varian
 
 bool ResourceDB::add_field(const FieldSpecification &p_field_specification)
 {
-	if (p_field_specification.info.name == "")
+	if (p_field_specification.info.name == "" || p_field_specification.info.type == Variant::Type::NIL)
 	{
 		return false;
 	}
@@ -283,13 +291,7 @@ Dictionary ResourceDB::_get_field_bind(String p_field_name)
 {
 	FieldSpecification l_field = fields[field_cache[p_field_name]];
 
-	Dictionary l_dict;
-
-	l_dict.merge(Dictionary(l_field.info));
-
-	l_dict["has_default_value"] = l_field.default_value;
-
-	l_dict["default_value"] = l_field.default_value;
+	Dictionary l_dict = l_field;
 
 	return l_dict;
 }
@@ -358,7 +360,7 @@ ResourceDB::GameResource &ResourceDB::get_resource_m(String p_uuid)
 
 Dictionary ResourceDB::_get_resource_bind(String p_uuid)
 {
-	return GameResource::to_dict(*resources[resource_cache[p_uuid]]);
+	return *resources[resource_cache[p_uuid]];
 }
 
 void ResourceDB::set_resource(GameResource p_game_resource)
