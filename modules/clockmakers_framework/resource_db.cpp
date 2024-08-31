@@ -219,19 +219,6 @@ ResourceDB::~ResourceDB()
 	}
 }
 
-PackedStringArray ResourceDB::get_field_list() const
-{
-	PackedStringArray l_field_list;
-	l_field_list.resize(fields.size());
-
-	for (FieldSpecification field : fields)
-	{
-		l_field_list.push_back(field.info.name);
-	}
-
-	return l_field_list;
-}
-
 bool ResourceDB::has_field(String p_field_name) const
 {
 	return field_cache.has(p_field_name);
@@ -282,6 +269,11 @@ bool ResourceDB::remove_field(String p_field_name)
 	return true;
 }
 
+ResourceDB::FieldSpecification &ResourceDB::get_field(String p_field_name)
+{
+	return fields.get_m(field_cache[p_field_name]);
+}
+
 const ResourceDB::FieldSpecification &ResourceDB::get_field(String p_field_name) const
 {
 	return fields[field_cache[p_field_name]];
@@ -294,6 +286,37 @@ Dictionary ResourceDB::_get_field_bind(String p_field_name)
 	Dictionary l_dict = l_field;
 
 	return l_dict;
+}
+
+PackedStringArray ResourceDB::get_field_list() const
+{
+	PackedStringArray l_field_list;
+	l_field_list.resize(fields.size());
+
+	for (int i = 0; i < fields.size(); i++)
+	{
+		l_field_list.set(i, fields[i].info.name);
+	}
+
+	return l_field_list;
+}
+
+Vector<ResourceDB::FieldSpecification> ResourceDB::get_fields()
+{
+	return fields;
+}
+
+Array ResourceDB::_get_fields_bind()
+{
+	Array l_array;
+	l_array.resize(fields.size());
+
+	for (int i = 0; i < fields.size(); i++)
+	{
+		l_array.set(i, _get_field_bind(fields[i].info.name));
+	}
+
+	return l_array;
 }
 
 void ResourceDB::set_field(PropertyInfo p_info, bool p_has_default_value, Variant *p_default_value)
@@ -321,6 +344,22 @@ void ResourceDB::_set_field_bind(Dictionary p_field_specification)
 	FieldSpecification &l_field_ref = fields.get_m(field_cache[l_field.info.name]);
 
 	l_field_ref = l_field;
+}
+void ResourceDB::set_fields(Vector<ResourceDB::FieldSpecification> p_fields)
+{
+	fields = p_fields;
+}
+
+void ResourceDB::_set_fields_bind(Array p_fields)
+{
+	Vector<ResourceDB::FieldSpecification> l_fields;
+
+	l_fields.resize(p_fields.size());
+
+	for (int i = 0; i < p_fields.size(); i++)
+	{
+		l_fields.set(i, FieldSpecification::from_dict(p_fields[i]));
+	}
 }
 
 bool ResourceDB::has_resource(String p_uuid) const

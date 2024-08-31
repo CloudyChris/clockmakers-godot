@@ -6,7 +6,7 @@
 #include "resource_db.h"
 #include "tracked_resource.h"
 
-void initialize_resource_manager_module(ModuleInitializationLevel p_level)
+void initialize_clockmakers_framework_module(ModuleInitializationLevel p_level)
 {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
 	{
@@ -17,7 +17,7 @@ void initialize_resource_manager_module(ModuleInitializationLevel p_level)
 	GDREGISTER_CLASS(ResourceDB);
 }
 
-void uninitialize_resource_manager_module(ModuleInitializationLevel p_level)
+void uninitialize_clockmakers_framework_module(ModuleInitializationLevel p_level)
 {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
 	{

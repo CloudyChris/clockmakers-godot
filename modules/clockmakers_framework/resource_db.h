@@ -3,6 +3,7 @@
 #ifndef RESOURCE_DB_H
 #define RESOURCE_DB_H
 
+#include "core/io/packed_data_container.h"
 #include "core/io/resource.h"
 #include "core/object/object.h"
 #include "core/templates/hash_map.h"
@@ -51,43 +52,78 @@ class ResourceDB : public TrackedResource
 		~GameResource();
 	};
 
-	mutable Vector<FieldSpecification> fields; // do we really need both a vector and a hashmap?
+	mutable Vector<FieldSpecification> fields;
 	HashMap<String, int> field_cache;
 
-	mutable LocalVector<GameResource *> resources; // ARCTODO: change to just HashMap<GameResource *> and if you really need it a LocalVector<GameResource *> like node::Data::children
+	mutable LocalVector<GameResource *> resources;
 	HashMap<String, int> resource_cache;
 
 protected:
 	static void _bind_methods();
 
 public:
-	PackedStringArray get_field_list() const;
+	/*------------------ FIELDS --------------*/
 	bool has_field(String p_field_name) const;
+
 	bool add_field(PropertyInfo p_info, bool p_has_default_value = false, Variant *p_default_value = nullptr);
 	bool add_field(const FieldSpecification &p_field_specification);
 	bool _add_field_bind(Dictionary p_field_specification);
+	bool add_fields(Vector<FieldSpecification> p_fields); // TODO
+	bool _add_fields_bild(Array p_fields); // TODO
+
+	ResourceDB::FieldSpecification &get_field(String p_field_name);
 	const ResourceDB::FieldSpecification &get_field(String p_field_name) const;
 	Dictionary _get_field_bind(String p_field_name);
+	PackedStringArray get_field_list() const;
+	Vector<ResourceDB::FieldSpecification> get_fields();
+	Array _get_fields_bind();
+
 	void set_field(PropertyInfo p_info, bool p_has_default_value = false, Variant *p_default_value = nullptr);
 	void set_field(const FieldSpecification &p_field_specification);
 	void _set_field_bind(Dictionary p_field_specification);
-	bool remove_field(String p_field_name);
+	void set_fields(Vector<FieldSpecification> p_fields);
+	void _set_fields_bind(Array p_fields);
 
+	bool remove_field(String p_field_name);
+	bool remove_fields(PackedStringArray p_fields); // TODO
+
+	/*----------------- GAME RESOURCES --------------*/
 	bool has_resource(String p_uuid) const;
+
 	bool add_resource(GameResource p_game_resource);
 	bool _add_resource_bind(Dictionary p_game_resource_dictionary);
+	bool add_resources(HashMap<String, GameResource *> p_game_resources); // TODO
+	bool _add_resources_bind(Dictionary p_game_resources); // TODO
+
 	const GameResource &get_resource(String p_uuid) const;
 	GameResource &get_resource_m(String p_uuid);
 	Dictionary _get_resource_bind(String p_uuid);
+	PackedStringArray get_resource_list() const; // TODO
+	HashMap<String, GameResource *> get_resources(); // TODO
+	Dictionary _get_resources_bind(); // TODO
+
 	void set_resource(GameResource p_game_resource);
 	void _set_resource_bind(Dictionary p_game_resource_dictionary);
-	bool remove_resource(String p_uuid);
+	void set_resources(HashMap<String, GameResource *> p_game_resources); // TODO
+	void _set_resources_bind(Dictionary p_game_resources); // TODO
 
+	bool remove_resource(String p_uuid);
+	bool remove_resources(PackedStringArray p_uuid_arrays); // TODO
+
+	/*------------------ GAME RESOURCE FIELDS ------------------*/
 	bool has_resource_field(String p_uuid, String p_field_name) const;
+
 	bool add_resource_field(String p_uuid, String p_field_name, Variant p_data);
+	bool add_resource_fields(String p_uuid, Dictionary p_fields); // TODO
+
 	Variant get_resource_field(String p_uuid, String p_field_name);
+	Dictionary get_resource_fields(String p_uuid); // TODO
+
 	void set_resource_field(String p_uuid, String p_field_name, Variant p_data);
+	void set_resource_fields(String p_uuid, Dictionary p_fields); // TODO
+
 	bool remove_resource_field(String p_uuid, String p_field_name);
+	bool remove_resource_fields(String p_uuid, PackedStringArray p_field_names); // TODO
 
 	ResourceDB(){};
 	~ResourceDB();
