@@ -7,7 +7,6 @@
 #include "core/object/object.h"
 #include "core/variant/dictionary.h"
 #include "core/variant/variant.h"
-#include "servers/rendering/renderer_rd/storage_rd/forward_id_storage.h"
 
 void ResourceDB::_bind_methods()
 {
@@ -28,10 +27,6 @@ void ResourceDB::_bind_methods()
 	ClassDB::bind_method(D_METHOD("get_resource_field", "uuid", "field_name"), &ResourceDB::get_resource_field);
 	ClassDB::bind_method(D_METHOD("set_resource_field", "uuid", "field_name", "data"), &ResourceDB::set_resource_field);
 	ClassDB::bind_method(D_METHOD("remvoe_resource_field", "uuid", "field_name"), &ResourceDB::remove_resource_field);
-}
-
-ResourceDB::FieldSpecification::FieldSpecification()
-{
 }
 
 ResourceDB::FieldSpecification::FieldSpecification(const FieldSpecification &p_field_specification)
@@ -113,6 +108,27 @@ ResourceDB::GameResource::~GameResource()
 	}
 }
 
+ResourceDB::GameResource ResourceDB::GameResource::from_dict(Dictionary p_game_resource_dictionary)
+{
+	GameResource l_game_resource;
+	ERR_FAIL_COND_V_MSG(p_game_resource_dictionary.has("uuid"), GameResource(), "GameResource dictionary uuid missing");
+	ERR_FAIL_COND_V_MSG(p_game_resource_dictionary.has("resource_path"), GameResource(), "GameResource dictionary uuid missing");
+	ERR_FAIL_COND_V_MSG(p_game_resource_dictionary.has("resource_type"), GameResource(), "GameResource dictionary resource_type missing");
+	l_game_resource.uuid = UUID(PackedByteArray(p_game_resource_dictionary["uuid"]));
+	l_game_resource.set_path(p_game_resource_dictionary["resource_path"]);
+	l_game_resource.resource_type = p_game_resource_dictionary["resource_type"];
+
+	Dictionary l_game_resource_fields_dictionary = p_game_resource_dictionary["fields"];
+
+	for (int i = 0; i < l_game_resource_fields_dictionary.size(); i++)
+	{
+		l_game_resource.fields.push_back(l_game_resource_fields_dictionary.values()[i]);
+		l_game_resource.field_cache.insert(l_game_resource_fields_dictionary.keys()[i], i);
+	}
+
+	return l_game_resource;
+}
+
 bool ResourceDB::GameResource::has_field(String p_field_name) const
 {
 	return field_cache.has(p_field_name);
@@ -164,21 +180,27 @@ bool ResourceDB::GameResource::remove_field(String p_field_name)
 	return true;
 }
 
-ResourceDB::GameResource ResourceDB::GameResource::from_dict(Dictionary p_game_resource_dictionary)
+bool ResourceDB::GameResource::validate_fields(const ResourceDB &p_parent) const
 {
-	GameResource l_game_resource;
-	CRASH_COND(p_game_resource_dictionary.has("resource_type"));
-	l_game_resource.resource_type = p_game_resource_dictionary["resource_type"];
-
-	Dictionary l_game_resource_fields_dictionary = p_game_resource_dictionary["fields"];
-
-	for (int i = 0; i < l_game_resource_fields_dictionary.size(); i++)
+	for (KeyValue<String, int> entry : field_cache)
 	{
-		l_game_resource.fields.push_back(l_game_resource_fields_dictionary.values()[i]);
-		l_game_resource.field_cache.insert(l_game_resource_fields_dictionary.keys()[i], i);
+		if (entry.key.is_empty())
+		{
+			return false;
+		}
+
+		if (!has_field(entry.key))
+		{
+			return false;
+		}
+
+		if (fields[entry.value].get_type() != p_parent.get_field(entry.key).info.type)
+		{
+			return false;
+		}
 	}
 
-	return l_game_resource;
+	return true;
 }
 
 ResourceDB::GameResource::operator Dictionary() const
@@ -190,6 +212,8 @@ ResourceDB::GameResource::operator Dictionary() const
 		l_game_resource_fields_dictionary[entry.key] = fields[entry.value];
 	}
 
+	l_game_resource_dictionary["uuid"] = uuid.uuid;
+	l_game_resource_dictionary["resource_path"] = get_path();
 	l_game_resource_dictionary["resource_type"] = resource_type;
 	l_game_resource_dictionary["fields"] = l_game_resource_fields_dictionary;
 
@@ -224,21 +248,42 @@ bool ResourceDB::has_field(String p_field_name) const
 	return field_cache.has(p_field_name);
 }
 
-bool ResourceDB::add_field(PropertyInfo p_info, bool p_has_default_value, Variant *p_default_value)
-{
-	return add_field(FieldSpecification(p_info, p_has_default_value, p_default_value));
-}
-
-bool ResourceDB::add_field(const FieldSpecification &p_field_specification)
+bool ResourceDB::validate_field(const ResourceDB::FieldSpecification &p_field_specification, bool p_is_add) const
 {
 	if (p_field_specification.info.name == "" || p_field_specification.info.type == Variant::Type::NIL)
 	{
 		return false;
 	}
 
-	if (field_cache.has(p_field_specification.info.name))
+	if (p_is_add)
+	{
+		if (field_cache.has(p_field_specification.info.name))
+		{
+			return false;
+		}
+	}
+
+	if (p_field_specification.default_value && p_field_specification.default_value.get_type() != p_field_specification.info.type)
 	{
 		return false;
+	}
+
+	return true;
+}
+
+bool ResourceDB::add_field(PropertyInfo p_info, bool p_has_default_value, Variant *p_default_value, bool p_check)
+{
+	return add_field(FieldSpecification(p_info, p_has_default_value, p_default_value), p_check);
+}
+
+bool ResourceDB::add_field(const FieldSpecification &p_field_specification, bool p_check)
+{
+	if (p_check)
+	{
+		if (!validate_field(p_field_specification, true))
+		{
+			return false;
+		}
 	}
 
 	fields.push_back(p_field_specification);
@@ -246,27 +291,42 @@ bool ResourceDB::add_field(const FieldSpecification &p_field_specification)
 	return true;
 }
 
-bool ResourceDB::_add_field_bind(Dictionary p_field_specification)
+bool ResourceDB::_add_field_bind(Dictionary p_field_specification, bool p_check)
 {
-	return add_field(FieldSpecification::from_dict(p_field_specification));
+	return add_field(FieldSpecification::from_dict(p_field_specification), p_check);
 }
 
-bool ResourceDB::remove_field(String p_field_name)
+bool ResourceDB::add_fields(Vector<ResourceDB::FieldSpecification> p_fields, bool p_check)
 {
-	if (!field_cache.has(p_field_name))
+	if (p_check)
 	{
-		return false;
+		for (FieldSpecification field : p_fields)
+		{
+			if (!validate_field(field, true))
+			{
+				return false;
+			}
+		}
 	}
 
-	fields.remove_at(field_cache[p_field_name]);
-	field_cache.erase(p_field_name);
-
-	for (int i = 0; i < fields.size(); i++)
+	for (FieldSpecification field : p_fields)
 	{
-		field_cache[fields[i].info.name] = i;
+		fields.push_back(field);
+		field_cache.insert(field.info.name, fields.size() - 1);
 	}
 
 	return true;
+}
+
+bool ResourceDB::_add_fields_bild(Array p_fields, bool p_check)
+{
+	Vector<FieldSpecification> l_fields;
+	for (Dictionary dict : p_fields)
+	{
+		l_fields.push_back(FieldSpecification::from_dict(dict));
+	}
+
+	return add_fields(l_fields, p_check);
 }
 
 ResourceDB::FieldSpecification &ResourceDB::get_field(String p_field_name)
@@ -319,42 +379,74 @@ Array ResourceDB::_get_fields_bind()
 	return l_array;
 }
 
-void ResourceDB::set_field(PropertyInfo p_info, bool p_has_default_value, Variant *p_default_value)
+void ResourceDB::set_field(PropertyInfo p_info, bool p_has_default_value, Variant *p_default_value, bool p_check)
 {
-	FieldSpecification &l_field_ref = fields.get_m(field_cache[p_info.name]);
-
-	l_field_ref.info = p_info;
-	l_field_ref.has_default_value = p_has_default_value;
-	if (p_default_value)
-	{
-		l_field_ref.default_value = *p_default_value;
-	}
+	set_field(FieldSpecification(p_info, p_has_default_value, p_default_value), p_check);
 }
 
-void ResourceDB::set_field(const FieldSpecification &p_field_specification)
+void ResourceDB::set_field(const FieldSpecification &p_field_specification, bool p_check)
 {
 	FieldSpecification &l_field_ref = fields.get_m(field_cache[p_field_specification.info.name]);
+
+	if (p_check)
+	{
+		if (!validate_field(p_field_specification))
+		{
+			return;
+		}
+	}
 
 	l_field_ref = p_field_specification;
 }
 
-void ResourceDB::_set_field_bind(Dictionary p_field_specification)
+void ResourceDB::_set_field_bind(Dictionary p_field_specification, bool p_check)
 {
 	FieldSpecification l_field = FieldSpecification::from_dict(p_field_specification);
-	FieldSpecification &l_field_ref = fields.get_m(field_cache[l_field.info.name]);
 
-	l_field_ref = l_field;
+	set_field(l_field, p_check);
 }
-void ResourceDB::set_fields(Vector<ResourceDB::FieldSpecification> p_fields)
+void ResourceDB::set_fields(Vector<ResourceDB::FieldSpecification> p_fields, bool p_check)
 {
+	if (p_check)
+	{
+		for (FieldSpecification field : p_fields)
+		{
+			if (!validate_field(field))
+			{
+				return;
+			}
+		}
+	}
+
 	fields = p_fields;
 }
 
-void ResourceDB::_set_fields_bind(Array p_fields)
+void ResourceDB::_set_fields_bind(Array p_fields, bool p_check)
 {
 	Vector<ResourceDB::FieldSpecification> l_fields;
 
 	l_fields.resize(p_fields.size());
+
+	if (p_check)
+	{
+		for (Dictionary dict : p_fields)
+		{
+			if (!dict.has("info"))
+			{
+				return;
+			}
+
+			if (!Dictionary(dict["info"]).has("name") && !String(Dictionary(dict["info"])["name"]).is_empty())
+			{
+				return;
+			}
+
+			if (!Dictionary(dict["info"]).has("type") && !(int(Dictionary(dict["info"])["type"]) == Variant::Type::NIL))
+			{
+				return;
+			}
+		}
+	}
 
 	for (int i = 0; i < p_fields.size(); i++)
 	{
@@ -362,16 +454,84 @@ void ResourceDB::_set_fields_bind(Array p_fields)
 	}
 }
 
+bool ResourceDB::remove_field(String p_field_name, bool p_check)
+{
+	if (p_check)
+	{
+		if (!field_cache.has(p_field_name))
+		{
+			return false;
+		}
+	}
+
+	fields.remove_at(field_cache[p_field_name]);
+	field_cache.erase(p_field_name);
+
+	for (int i = 0; i < fields.size(); i++)
+	{
+		field_cache[fields[i].info.name] = i;
+	}
+
+	return true;
+}
+
+bool ResourceDB::remove_fields(PackedStringArray p_fields, bool p_check)
+{
+	if (p_check)
+	{
+		for (String field : p_fields)
+		{
+			if (!field_cache.has(field))
+			{
+				return false;
+			}
+		}
+	}
+
+	for (String field : p_fields)
+	{
+		remove_field(field, !p_check);
+	}
+
+	return true;
+}
+
 bool ResourceDB::has_resource(String p_uuid) const
 {
 	return resource_cache.has(p_uuid);
 }
 
-bool ResourceDB::add_resource(GameResource p_game_resource)
+bool ResourceDB::validate_resource(const ResourceDB::GameResource &p_game_resource, bool p_is_add) const
 {
-	if (resource_cache.has(p_game_resource.get_human_readable_uuid()))
+	if (p_game_resource.get_uuid_const().is_empty() || p_game_resource.resource_type.is_empty())
 	{
 		return false;
+	}
+
+	if (p_is_add)
+	{
+		if (resource_cache.has(p_game_resource.get_human_readable_uuid_const()))
+		{
+			return false;
+		}
+	}
+
+	if (!p_game_resource.validate_fields(*this))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool ResourceDB::add_resource(GameResource p_game_resource, bool p_check)
+{
+	if (p_check)
+	{
+		if (!validate_resource(p_game_resource, true))
+		{
+			return false;
+		}
 	}
 
 	resources.push_back(&p_game_resource);
@@ -380,11 +540,45 @@ bool ResourceDB::add_resource(GameResource p_game_resource)
 	return true;
 }
 
-bool ResourceDB::_add_resource_bind(Dictionary p_game_resource_dictionary)
+bool ResourceDB::_add_resource_bind(Dictionary p_game_resource_dictionary, bool p_check)
 {
 	GameResource l_game_resource = GameResource::from_dict(p_game_resource_dictionary);
 
-	return add_resource(l_game_resource);
+	return add_resource(l_game_resource, p_check);
+}
+
+bool ResourceDB::add_resources(HashMap<String, ResourceDB::GameResource *> p_game_resources, bool p_check)
+{
+	if (p_check)
+	{
+		for (KeyValue<String, GameResource *> entry : p_game_resources)
+		{
+			if (!validate_resource(*entry.value, true))
+			{
+				return false;
+			}
+		}
+	}
+
+	for (KeyValue<String, GameResource *> entry : p_game_resources)
+	{
+		add_resource(*entry.value, !p_check);
+	}
+
+	return true;
+}
+
+bool ResourceDB::_add_resources_bind(Dictionary p_game_resources, bool p_check)
+{
+	HashMap<String, GameResource *> l_game_resources;
+
+	for (String key : p_game_resources.keys())
+	{
+		GameResource *l_gr = new GameResource(GameResource::from_dict(p_game_resources[key]));
+		l_game_resources.insert(key, l_gr);
+	}
+
+	return add_resources(l_game_resources, p_check);
 }
 
 const ResourceDB::GameResource &ResourceDB::get_resource(String p_uuid) const
@@ -402,19 +596,95 @@ Dictionary ResourceDB::_get_resource_bind(String p_uuid)
 	return *resources[resource_cache[p_uuid]];
 }
 
-void ResourceDB::set_resource(GameResource p_game_resource)
+PackedStringArray ResourceDB::get_resource_list() const
 {
+	PackedStringArray l_game_resource_uuid_list;
+
+	for (GameResource *entry : resources)
+	{
+		l_game_resource_uuid_list.push_back(entry->get_human_readable_uuid());
+	}
+
+	return l_game_resource_uuid_list;
+}
+
+HashMap<String, ResourceDB::GameResource *> ResourceDB::get_resources()
+{
+	HashMap<String, GameResource *> l_game_resources;
+
+	for (GameResource *entry : resources)
+	{
+		l_game_resources.insert(entry->get_human_readable_uuid(), entry);
+	}
+
+	return l_game_resources;
+}
+
+Dictionary ResourceDB::_get_resources_bind()
+{
+	Dictionary l_game_resources;
+
+	for (GameResource *entry : resources)
+	{
+		l_game_resources[entry->get_human_readable_uuid()] = static_cast<Dictionary>(*entry);
+	}
+
+	return l_game_resources;
+}
+
+void ResourceDB::set_resource(GameResource p_game_resource, bool p_check)
+{
+	if (p_check)
+	{
+		if (!validate_resource(p_game_resource))
+		{
+			return;
+		}
+	}
+
 	GameResource &l_game_resource = *resources[resource_cache[p_game_resource.get_human_readable_uuid()]];
 	l_game_resource.fields = p_game_resource.fields;
 	l_game_resource.field_cache = p_game_resource.field_cache;
 }
 
-void ResourceDB::_set_resource_bind(Dictionary p_game_resource_dictionary)
+void ResourceDB::_set_resource_bind(Dictionary p_game_resource_dictionary, bool p_check)
 {
-	set_resource(GameResource::from_dict(p_game_resource_dictionary));
+	set_resource(GameResource::from_dict(p_game_resource_dictionary), p_check);
 }
 
-bool ResourceDB::remove_resource(String p_uuid)
+void ResourceDB::set_resources(HashMap<String, ResourceDB::GameResource *> p_game_resources, bool p_check)
+{
+	if (p_check)
+	{
+		for (KeyValue<String, GameResource *> entry : p_game_resources)
+		{
+			if (!validate_resource(*entry.value))
+			{
+				return;
+			}
+		}
+	}
+
+	for (KeyValue<String, GameResource *> entry : p_game_resources)
+	{
+		set_resource(*entry.value, !p_check);
+	}
+}
+
+void ResourceDB::_set_resources_bind(Dictionary p_game_resources, bool p_check)
+{
+	HashMap<String, ResourceDB::GameResource *> l_game_resources;
+
+	for (String key : p_game_resources.keys())
+	{
+		GameResource *l_gr = new GameResource(GameResource::from_dict(p_game_resources[key]));
+		l_game_resources.insert(key, l_gr);
+	}
+
+	set_resources(l_game_resources, p_check);
+}
+
+bool ResourceDB::remove_resource(String p_uuid, bool p_check)
 {
 	if (!resource_cache.has(p_uuid))
 	{
@@ -437,14 +707,95 @@ bool ResourceDB::remove_resource(String p_uuid)
 	return true;
 }
 
+bool ResourceDB::remove_resources(PackedStringArray p_uuid_array, bool p_check)
+{
+	if (p_check)
+	{
+		for (String entry : p_uuid_array)
+		{
+			if (!resource_cache.has(entry))
+			{
+				return false;
+			}
+		}
+	}
+
+	for (String entry : p_uuid_array)
+	{
+		remove_resource(entry, !p_check);
+	}
+
+	return true;
+}
+
 bool ResourceDB::has_resource_field(String p_uuid, String p_field_name) const
 {
 	return resources[resource_cache[p_uuid]]->has_field(p_field_name);
 }
 
-bool ResourceDB::add_resource_field(String p_uuid, String p_field_name, Variant p_data)
+bool ResourceDB::add_resource_field(String p_uuid, String p_field_name, Variant p_data, bool p_check)
 {
+	if (p_check)
+	{
+		if (p_uuid.is_empty() || !resource_cache.has(p_uuid))
+		{
+			return false;
+		}
+
+		if (p_field_name.is_empty() || !field_cache.has(p_field_name))
+		{
+			return false;
+		}
+
+		if (has_resource_field(p_uuid, p_field_name))
+		{
+			return false;
+		}
+	}
 	return resources[resource_cache[p_uuid]]->add_field(p_field_name, p_data);
+}
+
+bool ResourceDB::add_resource_fields(String p_uuid, HashMap<String, Variant> p_fields, bool p_check)
+{
+	if (p_check)
+	{
+		if (p_uuid.is_empty() || !resource_cache.has(p_uuid))
+		{
+			return false;
+		}
+
+		for (KeyValue<String, Variant> entry : p_fields)
+		{
+			if (entry.key.is_empty() || !field_cache.has(entry.key))
+			{
+				return false;
+			}
+
+			if (has_resource_field(p_uuid, entry.key))
+			{
+				return false;
+			}
+		}
+	}
+
+	for (KeyValue<String, Variant> entry : p_fields)
+	{
+		add_resource_field(p_uuid, entry.key, entry.value, !p_check);
+	}
+
+	return true;
+}
+
+bool ResourceDB::_add_resource_fields_bind(String p_uuid, Dictionary p_fields, bool p_check)
+{
+	HashMap<String, Variant> l_fields;
+
+	for (String key : p_fields.keys())
+	{
+		l_fields.insert(key, p_fields[key]);
+	}
+
+	return add_resource_fields(p_uuid, l_fields, p_check);
 }
 
 Variant ResourceDB::get_resource_field(String p_uuid, String p_field_name)
@@ -452,12 +803,140 @@ Variant ResourceDB::get_resource_field(String p_uuid, String p_field_name)
 	return resources[resource_cache[p_uuid]]->get_field(p_field_name);
 }
 
-void ResourceDB::set_resource_field(String p_uuid, String p_field_name, Variant p_data)
+Dictionary ResourceDB::get_resource_fields(String p_uuid)
 {
-	resources[resource_cache[p_uuid]]->set_field(p_field_name, p_data);
+	Dictionary l_game_resource_dictionary;
+	if (!resource_cache.has(p_uuid))
+	{
+		return Dictionary();
+	}
+
+	l_game_resource_dictionary = _get_resource_bind(p_uuid);
+
+	if (!l_game_resource_dictionary.has("fields"))
+	{
+		return Dictionary();
+	}
+
+	return l_game_resource_dictionary["fields"];
 }
 
-bool ResourceDB::remove_resource_field(String p_uuid, String p_field_name)
+void ResourceDB::set_resource_field(String p_uuid, String p_field_name, Variant p_data, bool p_check)
 {
+	if (p_check)
+	{
+		if (p_uuid.is_empty() || !resource_cache.has(p_uuid))
+		{
+			return;
+		}
+
+		if (p_field_name.is_empty() || !field_cache.has(p_field_name))
+		{
+			return;
+		}
+	}
+
+	if (!has_resource_field(p_uuid, p_field_name))
+	{
+		resources[resource_cache[p_uuid]]->add_field(p_field_name, p_data);
+	}
+	else
+	{
+		resources[resource_cache[p_uuid]]->set_field(p_field_name, p_data);
+	}
+}
+
+void ResourceDB::set_resource_fields(String p_uuid, HashMap<String, Variant> p_fields, bool p_check)
+{
+	if (p_check)
+	{
+		if (p_uuid.is_empty() || !resource_cache.has(p_uuid))
+		{
+			return;
+		}
+
+		for (KeyValue<String, Variant> entry : p_fields)
+		{
+			if (entry.key.is_empty() || !field_cache.has(entry.key))
+			{
+				return;
+			}
+
+			if (!has_resource_field(p_uuid, entry.key))
+			{
+				return;
+			}
+		}
+	}
+
+	for (KeyValue<String, Variant> entry : p_fields)
+	{
+		set_resource_field(p_uuid, entry.key, entry.value, !p_check);
+	}
+}
+
+void ResourceDB::_set_resource_fields_bind(String p_uuid, Dictionary p_fields, bool p_check)
+{
+	HashMap<String, Variant> l_fields;
+
+	for (String key : p_fields.keys())
+	{
+		l_fields.insert(key, p_fields[key]);
+	}
+
+	set_resource_fields(p_uuid, l_fields, p_check);
+}
+
+bool ResourceDB::remove_resource_field(String p_uuid, String p_field_name, bool p_check)
+{
+	if (p_check)
+	{
+		if (p_uuid.is_empty() || !resource_cache.has(p_uuid))
+		{
+			return false;
+		}
+
+		if (p_field_name.is_empty() || !field_cache.has(p_field_name))
+		{
+			return false;
+		}
+
+		if (!has_resource_field(p_uuid, p_field_name))
+		{
+			return false;
+		}
+	}
+
 	return resources[resource_cache[p_uuid]]->remove_field(p_field_name);
+}
+
+bool ResourceDB::remove_resource_fields(String p_uuid, PackedStringArray p_field_names, bool p_check)
+{
+	if (p_check)
+	{
+		if (p_uuid.is_empty() || !resource_cache.has(p_uuid))
+		{
+			return false;
+		}
+
+		for (String entry : p_field_names)
+		{
+			if (entry.is_empty() || !field_cache.has(entry))
+			{
+				return false;
+			}
+
+			if (!has_resource_field(p_uuid, entry))
+			{
+				return false;
+			}
+		}
+	}
+
+	for (String entry : p_field_names)
+	{
+		remove_resource_field(p_uuid, entry, !p_check);
+	}
+
+	return true;
 }

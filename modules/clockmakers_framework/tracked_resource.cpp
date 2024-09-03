@@ -17,9 +17,29 @@ void TrackedResource::_bind_methods()
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "trackedresource_uuid"), "set_uuid", "get_uuid");
 }
 
+TrackedResource::UUID &TrackedResource::UUID::operator=(const UUID &p_uuid)
+{
+	uuid = p_uuid.uuid;
+	_update_uuid_string();
+
+	return *this;
+}
+
 TrackedResource::UUID::UUID()
 {
 	_generate_uuid();
+	_update_uuid_string();
+}
+
+TrackedResource::UUID::UUID(const UUID &p_uuid)
+	: uuid(p_uuid.uuid)
+{
+	_update_uuid_string();
+}
+
+TrackedResource::UUID::UUID(const PackedByteArray &p_uuid)
+	: uuid(p_uuid)
+{
 	_update_uuid_string();
 }
 
@@ -82,6 +102,11 @@ String TrackedResource::get_human_readable_uuid()
 	return uuid.human_readable;
 }
 
+String TrackedResource::get_human_readable_uuid_const() const
+{
+	return uuid.human_readable;
+}
+
 void TrackedResource::set_human_readable_uuid(String p_uuid_string)
 {
 	uuid.human_readable = p_uuid_string;
@@ -92,8 +117,15 @@ PackedByteArray TrackedResource::get_uuid()
 {
 	return uuid.uuid;
 }
+
+PackedByteArray TrackedResource::get_uuid_const() const
+{
+	return uuid.uuid;
+}
+
 void TrackedResource::set_uuid(PackedByteArray p_uuid)
 {
+	// TODO consider marking this dirty and updating the uuid string on get instead
 	uuid.uuid = p_uuid;
 	uuid._update_uuid_string();
 }

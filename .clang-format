@@ -64,7 +64,7 @@ ColumnLimit: 0
 # QualifierAlignment: Leave
 # CompactNamespaces: false
 ConstructorInitializerIndentWidth: 4
-ContinuationIndentWidth: 4
+ContinuationIndentWidth: 0
 Cpp11BracedListStyle: false
 # DeriveLineEnding: true
 # DerivePointerAlignment: false

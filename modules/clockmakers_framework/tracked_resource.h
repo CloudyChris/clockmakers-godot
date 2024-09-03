@@ -19,7 +19,11 @@ protected:
 		void _generate_uuid();
 		void _update_uuid_string();
 
+		UUID &operator=(const UUID &p_uuid);
+
 		UUID();
+		UUID(const UUID &p_uuid);
+		UUID(const PackedByteArray &p_uuid);
 		~UUID();
 	};
 
@@ -29,9 +33,11 @@ protected:
 
 public:
 	String get_human_readable_uuid();
+	String get_human_readable_uuid_const() const;
 	void set_human_readable_uuid(String p_uuid_string);
 
 	PackedByteArray get_uuid();
+	PackedByteArray get_uuid_const() const;
 	void set_uuid(PackedByteArray p_uuid);
 
 	TrackedResource(){};
