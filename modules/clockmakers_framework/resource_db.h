@@ -115,6 +115,7 @@ public:
 
 	/*------------------ GAME RESOURCE FIELDS ------------------*/
 	bool has_resource_field(String p_uuid, String p_field_name) const;
+	bool validate_resource_field(String p_uuid, String p_field_name, Variant p_data, bool p_is_add = false);
 
 	bool add_resource_field(String p_uuid, String p_field_name, Variant p_data, bool p_check = true);
 	bool add_resource_fields(String p_uuid, HashMap<String, Variant> p_fields, bool p_check = true);

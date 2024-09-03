@@ -733,6 +733,29 @@ bool ResourceDB::has_resource_field(String p_uuid, String p_field_name) const
 	return resources[resource_cache[p_uuid]]->has_field(p_field_name);
 }
 
+bool ResourceDB::validate_resource_field(String p_uuid, String p_field_name, Variant p_data, bool p_is_add)
+{
+	if (p_field_name.is_empty() || !field_cache.has(p_field_name))
+	{
+		return false;
+	}
+
+	if (p_is_add)
+	{
+		if (has_resource_field(p_uuid, p_field_name))
+		{
+			return false;
+		}
+	}
+
+	if (p_data.get_type() != get_field(p_field_name).info.type)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 bool ResourceDB::add_resource_field(String p_uuid, String p_field_name, Variant p_data, bool p_check)
 {
 	if (p_check)
@@ -742,12 +765,7 @@ bool ResourceDB::add_resource_field(String p_uuid, String p_field_name, Variant 
 			return false;
 		}
 
-		if (p_field_name.is_empty() || !field_cache.has(p_field_name))
-		{
-			return false;
-		}
-
-		if (has_resource_field(p_uuid, p_field_name))
+		if (!validate_resource_field(p_uuid, p_field_name, p_data, true))
 		{
 			return false;
 		}
@@ -766,12 +784,7 @@ bool ResourceDB::add_resource_fields(String p_uuid, HashMap<String, Variant> p_f
 
 		for (KeyValue<String, Variant> entry : p_fields)
 		{
-			if (entry.key.is_empty() || !field_cache.has(entry.key))
-			{
-				return false;
-			}
-
-			if (has_resource_field(p_uuid, entry.key))
+			if (!validate_resource_field(p_uuid, entry.key, entry.value, true))
 			{
 				return false;
 			}
@@ -830,7 +843,7 @@ void ResourceDB::set_resource_field(String p_uuid, String p_field_name, Variant 
 			return;
 		}
 
-		if (p_field_name.is_empty() || !field_cache.has(p_field_name))
+		if (!validate_resource_field(p_uuid, p_field_name, p_data))
 		{
 			return;
 		}
@@ -857,12 +870,7 @@ void ResourceDB::set_resource_fields(String p_uuid, HashMap<String, Variant> p_f
 
 		for (KeyValue<String, Variant> entry : p_fields)
 		{
-			if (entry.key.is_empty() || !field_cache.has(entry.key))
-			{
-				return;
-			}
-
-			if (!has_resource_field(p_uuid, entry.key))
+			if (!validate_resource_field(p_uuid, entry.key, entry.value))
 			{
 				return;
 			}
