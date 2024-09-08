@@ -11,22 +11,34 @@
 void ResourceDB::_bind_methods()
 {
 	ClassDB::bind_method(D_METHOD("get_field_list"), &ResourceDB::get_field_list);
-	ClassDB::bind_method(D_METHOD("add_field", "field_specification"), &ResourceDB::_add_field_bind);
+	ClassDB::bind_method(D_METHOD("add_field", "field_specification", "check"), &ResourceDB::_add_field_bind);
+	ClassDB::bind_method(D_METHOD("add_fields", "fields", "check"), &ResourceDB::_add_fields_bind);
 	ClassDB::bind_method(D_METHOD("get_field", "field_name"), &ResourceDB::_get_field_bind);
-	ClassDB::bind_method(D_METHOD("set_field", "field_specification"), &ResourceDB::_set_field_bind);
-	ClassDB::bind_method(D_METHOD("remvoe_field", "field_name"), &ResourceDB::remove_field);
+	ClassDB::bind_method(D_METHOD("get_fields"), &ResourceDB::_get_fields_bind);
+	ClassDB::bind_method(D_METHOD("set_field", "field_specification", "check"), &ResourceDB::_set_field_bind);
+	ClassDB::bind_method(D_METHOD("set_fields", "fields", "check"), &ResourceDB::_set_fields_bind);
+	ClassDB::bind_method(D_METHOD("remvoe_field", "field_name", "check"), &ResourceDB::remove_field);
+	ClassDB::bind_method(D_METHOD("remvoe_fields", "field_names", "check"), &ResourceDB::remove_fields);
 
 	ClassDB::bind_method(D_METHOD("has_resource", "uuid"), &ResourceDB::has_resource);
-	ClassDB::bind_method(D_METHOD("add_resource", "game_resource"), &ResourceDB::_add_resource_bind);
+	ClassDB::bind_method(D_METHOD("add_resource", "game_resource", "check"), &ResourceDB::_add_resource_bind);
+	ClassDB::bind_method(D_METHOD("add_resources", "game_resources", "check"), &ResourceDB::_add_resources_bind);
 	ClassDB::bind_method(D_METHOD("get_resource", "uuid"), &ResourceDB::_get_resource_bind);
-	ClassDB::bind_method(D_METHOD("set_resource", "game_resource"), &ResourceDB::_set_resource_bind);
-	ClassDB::bind_method(D_METHOD("remove_resource", "uuid"), &ResourceDB::remove_resource);
+	ClassDB::bind_method(D_METHOD("get_resources"), &ResourceDB::_get_resources_bind);
+	ClassDB::bind_method(D_METHOD("set_resource", "game_resource", "check"), &ResourceDB::_set_resource_bind);
+	ClassDB::bind_method(D_METHOD("set_resource", "game_resources", "check"), &ResourceDB::_set_resources_bind);
+	ClassDB::bind_method(D_METHOD("remove_resource", "uuid", "check"), &ResourceDB::remove_resource);
+	ClassDB::bind_method(D_METHOD("remove_resources", "uuids", "check"), &ResourceDB::remove_resources);
 
 	ClassDB::bind_method(D_METHOD("has_resource_field", "uuid", "field_name"), &ResourceDB::has_resource_field);
-	ClassDB::bind_method(D_METHOD("add_resource_field", "uuid", "field_name", "data"), &ResourceDB::add_resource_field);
+	ClassDB::bind_method(D_METHOD("add_resource_field", "uuid", "field_name", "data", "check"), &ResourceDB::add_resource_field);
+	ClassDB::bind_method(D_METHOD("add_resource_fields", "uuid", "fields", "check"), &ResourceDB::_add_resource_fields_bind);
 	ClassDB::bind_method(D_METHOD("get_resource_field", "uuid", "field_name"), &ResourceDB::get_resource_field);
-	ClassDB::bind_method(D_METHOD("set_resource_field", "uuid", "field_name", "data"), &ResourceDB::set_resource_field);
-	ClassDB::bind_method(D_METHOD("remvoe_resource_field", "uuid", "field_name"), &ResourceDB::remove_resource_field);
+	ClassDB::bind_method(D_METHOD("get_resource_field", "uuid"), &ResourceDB::get_resource_fields);
+	ClassDB::bind_method(D_METHOD("set_resource_field", "uuid", "field_name", "data", "check"), &ResourceDB::set_resource_field);
+	ClassDB::bind_method(D_METHOD("set_resource_fields", "uuid", "fields", "check"), &ResourceDB::_set_resource_fields_bind);
+	ClassDB::bind_method(D_METHOD("remvoe_resource_field", "uuid", "field_name", "check"), &ResourceDB::remove_resource_field);
+	ClassDB::bind_method(D_METHOD("remvoe_resource_fields", "uuid", "field_names", "check"), &ResourceDB::remove_resource_fields);
 }
 
 ResourceDB::FieldSpecification::FieldSpecification(const FieldSpecification &p_field_specification)
@@ -318,7 +330,7 @@ bool ResourceDB::add_fields(Vector<ResourceDB::FieldSpecification> p_fields, boo
 	return true;
 }
 
-bool ResourceDB::_add_fields_bild(Array p_fields, bool p_check)
+bool ResourceDB::_add_fields_bind(Array p_fields, bool p_check)
 {
 	Vector<FieldSpecification> l_fields;
 	for (Dictionary dict : p_fields)

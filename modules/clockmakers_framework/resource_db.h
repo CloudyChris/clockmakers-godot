@@ -11,7 +11,7 @@
 #include "core/variant/variant.h"
 
 #include "tracked_resource.h"
-// TODO make this thread safe (spinlocks aaaand _THREAD_SAFE_ macro)
+
 class ResourceDB : public TrackedResource
 {
 	GDCLASS(ResourceDB, TrackedResource);
@@ -71,7 +71,7 @@ public:
 	bool add_field(const FieldSpecification &p_field_specification, bool p_check = true);
 	bool _add_field_bind(Dictionary p_field_specification, bool p_check = true);
 	bool add_fields(Vector<ResourceDB::FieldSpecification> p_fields, bool p_check = true);
-	bool _add_fields_bild(Array p_fields, bool p_check = true);
+	bool _add_fields_bind(Array p_fields, bool p_check = true);
 
 	ResourceDB::FieldSpecification &get_field(String p_field_name);
 	const ResourceDB::FieldSpecification &get_field(String p_field_name) const;
