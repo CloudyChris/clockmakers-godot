@@ -3,8 +3,7 @@
 #include "register_types.h"
 
 #include "core/object/class_db.h"
-#include "resource_db.h"
-#include "tracked_resource.h"
+#include "uuid.h"
 
 void initialize_clockmakers_framework_module(ModuleInitializationLevel p_level)
 {
@@ -13,8 +12,7 @@ void initialize_clockmakers_framework_module(ModuleInitializationLevel p_level)
 		return;
 	}
 
-	GDREGISTER_CLASS(TrackedResource);
-	GDREGISTER_CLASS(ResourceDB);
+	GDREGISTER_CLASS(UUID);
 }
 
 void uninitialize_clockmakers_framework_module(ModuleInitializationLevel p_level)
