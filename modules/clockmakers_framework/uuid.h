@@ -15,23 +15,32 @@ class UUID : public Object
 	void _update_uuid_string();
 
 protected:
-	PackedByteArray uuid;
-	String uuid_string;
+	static const size_t uuid_size = 16;
+	static const size_t uuid_string_size = 36;
+	uint8_t *uuid;
+	char *uuid_string;
 
 	static void _bind_methods();
 
 public:
-	String get_uuid_string();
-	String get_uuid_string_const() const;
-	void set_uuid_string(String p_uuid_string);
+	char *get_uuid_string();
+	char *get_uuid_string_const() const;
+	void set_uuid_string(char *p_uuid_string);
 
-	PackedByteArray get_uuid();
-	PackedByteArray get_uuid_const() const;
-	void set_uuid(PackedByteArray p_uuid);
+	String get_uuid_string_bind();
+	void set_uuid_string_bind(String p_uuid_string);
+
+	uint8_t *get_uuid();
+	uint8_t *get_uuid_const() const;
+	void set_uuid(uint8_t *p_uuid);
+
+	PackedByteArray get_uuid_bind();
+	void set_uuid_bind(PackedByteArray p_uuid);
 
 	UUID();
 	UUID(const UUID &p_uuid);
-	UUID(const PackedByteArray &p_uuid);
+	UUID(uint8_t *p_uuid);
+	UUID(char *p_uuid_string);
 	~UUID();
 };
 
