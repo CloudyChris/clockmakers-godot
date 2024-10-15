@@ -82,6 +82,16 @@ TableSpecification::~TableSpecification()
 	fields_cache.clear();
 }
 
+String TableSpecification::get_name() const
+{
+	return name;
+}
+
+void TableSpecification::set_name(String p_name)
+{
+	name = p_name;
+}
+
 bool TableSpecification::has_field(String p_field_name) const
 {
 	return fields_cache.has(p_field_name);
@@ -104,25 +114,6 @@ FieldSpecification TableSpecification::get_field_specification(String p_field_na
 	}
 
 	return fields.get(fields_index);
-}
-
-FieldSpecification &TableSpecification::get_field_specification_m(String p_field_name)
-{
-	if (!fields_cache.has(p_field_name))
-	{
-		ERR_PRINT_ED("Field does not exist");
-		return EMPTY_FIELD_SPECIFICATION;
-	}
-
-	uint64_t fields_index = fields_cache.get(p_field_name);
-
-	if (fields_index >= fields.size())
-	{
-		ERR_PRINT_ED("Field cache index error");
-		return EMPTY_FIELD_SPECIFICATION;
-	}
-
-	return fields.get_m(fields_index);
 }
 
 void TableSpecification::set_field_specification(String p_field_name, FieldSpecification p_field_specification)
@@ -183,14 +174,9 @@ GameDataEntry::~GameDataEntry()
 	data_cache.clear();
 }
 
-TableSpecification &GameDataEntry::get_table_specification() const
+TableSpecification *GameDataEntry::get_table_specification() const
 {
-	return *table_specification;
-}
-
-TableSpecification &GameDataEntry::get_table_specification_m()
-{
-	return *table_specification;
+	return table_specification;
 }
 
 void GameDataEntry::set_table_specification(const TableSpecification &p_table_specification)
@@ -199,11 +185,6 @@ void GameDataEntry::set_table_specification(const TableSpecification &p_table_sp
 }
 
 GameDataTable &GameDataEntry::get_parent() const
-{
-	return *parent;
-}
-
-GameDataTable &GameDataEntry::get_parent_m()
 {
 	return *parent;
 }
@@ -284,11 +265,6 @@ TableSpecification GameDataTable::get_table_specification() const
 	return *table_specification;
 }
 
-TableSpecification &GameDataTable::get_table_specification_m()
-{
-	return *table_specification;
-}
-
 void GameDataTable::set_table_specification(const TableSpecification &p_table_specification)
 {
 	table_specification->copy(p_table_specification);
@@ -311,25 +287,6 @@ GameDataEntry GameDataTable::get_entry(UUID p_uuid) const
 	}
 
 	return entries.get(entries_index);
-}
-
-GameDataEntry &GameDataTable::get_entry_m(UUID p_uuid)
-{
-	if (!entries_cache.has(p_uuid))
-	{
-		ERR_PRINT_ED("Entry does not exist");
-		return EMPTY_GAME_DATA_ENTRY;
-	}
-
-	uint64_t entries_index = entries_cache.get(p_uuid);
-
-	if (entries_index >= entries.size())
-	{
-		ERR_PRINT_ED("Entry cache index error");
-		return EMPTY_GAME_DATA_ENTRY;
-	}
-
-	return entries.get_m(entries_index);
 }
 
 void GameDataTable::set_entry(UUID p_uuid, const GameDataEntry &p_game_data_entry)

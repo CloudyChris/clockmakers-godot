@@ -27,14 +27,12 @@ protected:
 
 public:
 	TableSpecification get_table_specification(String p_table_name) const;
-	TableSpecification &get_table_specification_m(String p_table_name);
-	void set_table_specification(String p_name, const TableSpecification &p_table_specification);
+	void set_table_specification(String p_table_name, const TableSpecification &p_table_specification);
 
 	HashMap<String, TableSpecification> get_table_specifications(Vector<String> p_table_names) const;
 	void set_table_specifications(HashMap<String, TableSpecification> p_table_specifications);
 
 	GameDataTable get_table(String p_table_name) const;
-	GameDataTable &get_table_m(String p_table_name);
 	void set_table(String p_table_name, const GameDataTable &p_table);
 
 	HashMap<String, GameDataTable> get_tables(Vector<String> p_table_names) const;

@@ -42,7 +42,7 @@ class TableSpecification : public Object
 	GDCLASS(TableSpecification, Object);
 
 private:
-	FieldSpecification EMPTY_FIELD_SPECIFICATION = FieldSpecification();
+	String name;
 	Vector<FieldSpecification> fields;
 	HashMap<String, uint64_t> fields_cache;
 
@@ -50,9 +50,11 @@ protected:
 	static void _bind_methods();
 
 public:
+	String get_name() const;
+	void set_name(String p_name);
+
 	bool has_field(String p_field_name) const;
 	FieldSpecification get_field_specification(String p_field_name) const;
-	FieldSpecification &get_field_specification_m(String p_field_name);
 	void set_field_specification(String p_field_name, FieldSpecification p_field_specification);
 
 	void copy(const TableSpecification &p_table_specification);
@@ -76,12 +78,10 @@ protected:
 	static void _bind_methods();
 
 public:
-	TableSpecification &get_table_specification() const;
-	TableSpecification &get_table_specification_m();
+	TableSpecification *get_table_specification() const;
 	void set_table_specification(const TableSpecification &p_table_specification);
 
 	GameDataTable &get_parent() const;
-	GameDataTable &get_parent_m();
 	void set_parent(const GameDataTable &p_parent);
 
 	Variant get_data(String p_field_name) const;
@@ -98,8 +98,6 @@ class GameDataTable : public TrackedObject
 	GDCLASS(GameDataTable, TrackedObject);
 
 private:
-	GameDataEntry EMPTY_GAME_DATA_ENTRY = GameDataEntry();
-
 	TableSpecification *table_specification;
 
 	Vector<GameDataEntry> entries;
@@ -110,11 +108,9 @@ protected:
 
 public:
 	TableSpecification get_table_specification() const;
-	TableSpecification &get_table_specification_m();
 	void set_table_specification(const TableSpecification &p_table_specificaiton);
 
 	GameDataEntry get_entry(UUID p_uuid) const;
-	GameDataEntry &get_entry_m(UUID p_uuid);
 	void set_entry(UUID p_uuid, const GameDataEntry &p_game_data_entry);
 
 	Variant get_entry_field(UUID p_uuid, String p_field_name) const;
