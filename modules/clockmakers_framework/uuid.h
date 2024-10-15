@@ -10,15 +10,15 @@ class UUID : public Object
 {
 	GDCLASS(UUID, Object);
 
-	void _generate_uuid();
-	void _update_uuid();
-	void _update_uuid_string();
-
 protected:
 	static const size_t uuid_size = 16;
 	static const size_t uuid_string_size = 36;
 	uint8_t *uuid;
 	char *uuid_string;
+
+	void _generate_uuid();
+	void _update_uuid();
+	void _update_uuid_string();
 
 	static void _bind_methods();
 
@@ -42,6 +42,25 @@ public:
 	UUID(uint8_t *p_uuid);
 	UUID(char *p_uuid_string);
 	~UUID();
+};
+
+class TrackedObject : public Object
+{
+	GDCLASS(TrackedObject, Object);
+
+private:
+	UUID uuid;
+
+protected:
+	static void _bind_methods();
+
+public:
+	UUID get_uuid() const;
+	UUID &get_uuid_m();
+	void set_uuid(const UUID &p_uuid);
+
+	TrackedObject();
+	TrackedObject(const TrackedObject &p_tracked_object);
 };
 
 #endif

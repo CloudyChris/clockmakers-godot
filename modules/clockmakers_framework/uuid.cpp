@@ -1,17 +1,18 @@
 /* uuid.cpp */
 
 #include "uuid.h"
+#include "core/object/object.h"
 
 void UUID::_bind_methods()
 {
 	ClassDB::bind_method(D_METHOD("get_uuid"), &UUID::get_uuid_bind);
-	ClassDB::bind_method(D_METHOD("set_uuid", "uuid"), &UUID::set_uuid_bind);
+	ClassDB::bind_method(D_METHOD("set_uuid", "p_uuid"), &UUID::set_uuid_bind);
 	ClassDB::bind_method(D_METHOD("get_uuid_string"), &UUID::get_uuid_string_bind);
-	ClassDB::bind_method(D_METHOD("set_uuid_string", "uuid_string"), &UUID::set_uuid_string_bind);
+	ClassDB::bind_method(D_METHOD("set_uuid_string", "p_uuid_string"), &UUID::set_uuid_string_bind);
 
-	ADD_GROUP("UUID", "uuidgroup_");
-	ADD_PROPERTY(PropertyInfo(Variant::STRING, "uuidgroup_uuid_string", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT), "set_uuid_string", "get_uuid_string");
-	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "uuidgroup_uuid", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT), "set_uuid", "get_uuid");
+	ADD_GROUP("UUID", "UUIDGroup_");
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "UUIDGroup_uuid_string", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT), "set_uuid_string", "get_uuid_string");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "UUIDGroup_uuid", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT), "set_uuid", "get_uuid");
 }
 
 UUID::UUID()
@@ -247,7 +248,7 @@ String UUID::get_uuid_string_bind()
 
 void UUID::set_uuid_string_bind(String p_uuid_string)
 {
-	CharString l_string_compat = p_uuid_string.ascii(true);
+	CharString l_string_compat = p_uuid_string.to_lower().ascii(true);
 	memcpy(uuid_string, l_string_compat.ptrw(), uuid_string_size);
 	_update_uuid();
 }
@@ -275,4 +276,38 @@ void UUID::set_uuid_bind(PackedByteArray p_uuid)
 	memcpy(uuid, p_uuid.ptrw(), uuid_size * sizeof(uint8_t));
 
 	_update_uuid_string();
+}
+
+void TrackedObject::_bind_methods()
+{
+	ClassDB::bind_method(D_METHOD("get_uuid"), &TrackedObject::get_uuid);
+	ClassDB::bind_method(D_METHOD("set_uuid"), &TrackedObject::set_uuid);
+
+	ADD_GROUP("Tracked Object", "TrackedObjectGroup_");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "TrackedObjectGroup_uuid", PROPERTY_HINT_OBJECT_ID, "UUID", PROPERTY_USAGE_DEFAULT), "set_uuid", "get_uuid");
+}
+
+TrackedObject::TrackedObject()
+	: uuid(UUID())
+{
+}
+
+TrackedObject::TrackedObject(const TrackedObject &p_tracked_object)
+	: uuid(p_tracked_object.uuid)
+{
+}
+
+UUID TrackedObject::get_uuid() const
+{
+	return uuid;
+}
+
+UUID &TrackedObject::get_uuid_m()
+{
+	return uuid;
+}
+
+void TrackedObject::set_uuid(const UUID &p_uuid)
+{
+	uuid.set_uuid(p_uuid.get_uuid_const());
 }
