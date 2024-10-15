@@ -100,7 +100,7 @@ class GameDataTable : public TrackedObject
 private:
 	GameDataEntry EMPTY_GAME_DATA_ENTRY = GameDataEntry();
 
-	TableSpecification table_specification;
+	TableSpecification *table_specification;
 
 	Vector<GameDataEntry> entries;
 	HashMap<UUID, int> entries_cache;

@@ -261,6 +261,7 @@ void GameDataTable::_bind_methods()
 }
 
 GameDataTable::GameDataTable()
+	: table_specification(nullptr)
 {
 }
 
@@ -273,24 +274,24 @@ GameDataTable::GameDataTable(const GameDataTable &p_game_data_table)
 
 GameDataTable::~GameDataTable()
 {
-	table_specification.~TableSpecification();
+	table_specification = nullptr;
 	entries.clear();
 	entries_cache.clear();
 }
 
 TableSpecification GameDataTable::get_table_specification() const
 {
-	return table_specification;
+	return *table_specification;
 }
 
 TableSpecification &GameDataTable::get_table_specification_m()
 {
-	return table_specification;
+	return *table_specification;
 }
 
 void GameDataTable::set_table_specification(const TableSpecification &p_table_specification)
 {
-	table_specification.copy(p_table_specification);
+	table_specification->copy(p_table_specification);
 }
 
 GameDataEntry GameDataTable::get_entry(UUID p_uuid) const
@@ -346,7 +347,7 @@ void GameDataTable::set_entry(UUID p_uuid, const GameDataEntry &p_game_data_entr
 
 Variant GameDataTable::get_entry_field(UUID p_uuid, String p_field_name) const
 {
-	if (!table_specification.has_field(p_field_name))
+	if (!table_specification->has_field(p_field_name))
 	{
 		ERR_PRINT_ED("Field not defined in table specification");
 		return Variant();
@@ -367,4 +368,63 @@ Variant GameDataTable::get_entry_field(UUID p_uuid, String p_field_name) const
 	}
 
 	return entries.get(entries_index).get_data(p_field_name);
+}
+
+void GameDataTable::set_entry_field(UUID p_uuid, String p_field_name, Variant p_data)
+{
+	if (!table_specification->has_field(p_field_name))
+	{
+		ERR_PRINT_ED("Field not defined in table specification");
+		return;
+	}
+
+	if (!entries_cache.has(p_uuid))
+	{
+		ERR_PRINT_ED("Entry does not exist");
+		return;
+	}
+
+	uint64_t entries_index = entries_cache.get(p_uuid);
+
+	if (entries_index >= entries.size())
+	{
+		ERR_PRINT_ED("Entry cache index error");
+		return;
+	}
+
+	entries.get_m(entries_index).set_data(p_field_name, p_data);
+}
+
+HashMap<UUID, GameDataEntry> GameDataTable::get_entries(Vector<UUID> p_uuids) const
+{
+	HashMap<UUID, GameDataEntry> r_entries;
+	if (!p_uuids.is_empty())
+	{
+		for (UUID id : p_uuids)
+		{
+			if (!entries_cache.has(id))
+			{
+				ERR_PRINT_ED("Entry does not exist");
+			}
+
+			r_entries.insert(id, get_entry(id));
+		}
+	}
+	else
+	{
+		for (GameDataEntry entry : entries)
+		{
+			r_entries.insert(entry.get_uuid(), entry);
+		}
+	}
+
+	return r_entries;
+}
+
+void GameDataTable::set_entries(HashMap<UUID, GameDataEntry> p_game_data_entries)
+{
+	for (KeyValue<UUID, GameDataEntry> kv : p_game_data_entries)
+	{
+		set_entry(kv.key, kv.value);
+	}
 }

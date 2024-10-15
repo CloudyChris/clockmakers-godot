@@ -3,6 +3,7 @@
 #include "register_types.h"
 
 #include "core/object/class_db.h"
+#include "game_data_table.h"
 #include "uuid.h"
 
 void initialize_clockmakers_framework_module(ModuleInitializationLevel p_level)
@@ -13,6 +14,12 @@ void initialize_clockmakers_framework_module(ModuleInitializationLevel p_level)
 	}
 
 	GDREGISTER_CLASS(UUID);
+	GDREGISTER_CLASS(TrackedObject);
+
+	GDREGISTER_CLASS(FieldSpecification);
+	GDREGISTER_CLASS(TableSpecification);
+	GDREGISTER_CLASS(GameDataEntry);
+	GDREGISTER_CLASS(GameDataTable);
 }
 
 void uninitialize_clockmakers_framework_module(ModuleInitializationLevel p_level)
