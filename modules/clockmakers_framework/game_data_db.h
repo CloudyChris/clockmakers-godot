@@ -43,4 +43,4 @@ public:
 	~GameDataDB();
 };
 
-#endif
+#endif // GAME_DATA_DB_H
