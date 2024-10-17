@@ -80,6 +80,13 @@ UUID::~UUID()
 	if (uuid)
 	{
 		free(uuid);
+		uuid = nullptr;
+	}
+
+	if (uuid_string)
+	{
+		free(uuid_string);
+		uuid_string = nullptr;
 	}
 }
 
@@ -180,6 +187,7 @@ void UUID::_update_uuid()
 			default:
 				memcpy(uuid, uuid_backup, uuid_size * sizeof(uint8_t));
 				free(uuid_backup);
+				uuid_backup = nullptr;
 				return;
 		}
 
@@ -199,6 +207,7 @@ void UUID::_update_uuid()
 	if (uuid_backup)
 	{
 		free(uuid_backup);
+		uuid_backup = nullptr;
 	}
 }
 
@@ -278,6 +287,36 @@ void UUID::set_uuid_bind(PackedByteArray p_uuid)
 	_update_uuid_string();
 }
 
+Tracked::Tracked()
+	: uuid(UUID())
+{
+}
+
+Tracked::Tracked(const Tracked &p_tracked)
+	: uuid(p_tracked.uuid)
+{
+}
+
+Tracked::~Tracked()
+{
+	uuid.~UUID();
+}
+
+UUID Tracked::get_uuid() const
+{
+	return uuid;
+}
+
+UUID &Tracked::get_uuid_m()
+{
+	return uuid;
+}
+
+void Tracked::set_uuid(const UUID &p_uuid)
+{
+	uuid.set_uuid(p_uuid.get_uuid_const());
+}
+
 void TrackedObject::_bind_methods()
 {
 	ClassDB::bind_method(D_METHOD("get_uuid"), &TrackedObject::get_uuid);
@@ -295,6 +334,11 @@ TrackedObject::TrackedObject()
 TrackedObject::TrackedObject(const TrackedObject &p_tracked_object)
 	: uuid(p_tracked_object.uuid)
 {
+}
+
+TrackedObject::~TrackedObject()
+{
+	uuid.~UUID();
 }
 
 UUID TrackedObject::get_uuid() const

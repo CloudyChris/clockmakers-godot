@@ -3,134 +3,98 @@
 #include "game_data_table.h"
 #include "core/object/object.h"
 
-void GameDataEntry::_bind_methods()
-{
-	ClassDB::bind_method(D_METHOD("get_table_specification"), &GameDataEntry::get_table_specification);
-	ClassDB::bind_method(D_METHOD("set_table_specification", "p_table_specification"), &GameDataEntry::set_table_specification);
-	ClassDB::bind_method(D_METHOD("get_parent"), &GameDataEntry::get_parent);
-	ClassDB::bind_method(D_METHOD("set_parent", "p_parent"), &GameDataEntry::set_parent);
-	ClassDB::bind_method(D_METHOD("get_data", "p_field_name"), &GameDataEntry::get_data);
-	ClassDB::bind_method(D_METHOD("set_data", "p_field_name", "p_data"), &GameDataEntry::set_data);
-}
-
 GameDataEntry::GameDataEntry()
-	: table_specification(nullptr)
-	, parent(nullptr)
+	: parent(nullptr)
 {
 }
 
 GameDataEntry::GameDataEntry(const GameDataEntry &p_game_data_entry)
-	: table_specification(p_game_data_entry.table_specification)
-	, parent(p_game_data_entry.parent)
+	: parent(p_game_data_entry.parent)
 	, data(p_game_data_entry.data)
-	, data_cache(p_game_data_entry.data_cache)
 {
 }
 
-GameDataEntry::GameDataEntry(GameDataTable *p_parent, TableSpecification *p_table_specification)
-	: table_specification(p_table_specification)
-	, parent(p_parent)
+GameDataEntry::GameDataEntry(GameDataTable *p_parent)
+	: parent(p_parent)
 {
 }
 
 GameDataEntry::~GameDataEntry()
 {
-	table_specification = nullptr;
 	parent = nullptr;
 
-	data.clear();
-	data_cache.clear();
+	data.~VectorHashMapPair();
 }
 
-TableSpecification *GameDataEntry::get_table_specification() const
+GameDataTable *GameDataEntry::get_parent() const
 {
-	return table_specification;
+	return parent;
 }
 
-void GameDataEntry::set_table_specification(const TableSpecification &p_table_specification)
+void GameDataEntry::set_parent(GameDataTable *p_parent)
 {
-	table_specification->copy(p_table_specification);
+	parent = p_parent;
 }
 
-GameDataTable &GameDataEntry::get_parent() const
+String GameDataEntry::get_path() const
 {
-	return *parent;
+	return path;
+}
+
+void GameDataEntry::set_path(String p_path)
+{
+	path = p_path;
 }
 
 Variant GameDataEntry::get_data(String p_field_name) const
 {
-	if (!table_specification->has_field(p_field_name))
+	if (!parent->get_table_specification()->has_field(p_field_name))
 	{
 		return Variant();
 	}
 
-	if (!data_cache.has(p_field_name))
-	{
-		return Variant();
-	}
-
-	uint64_t data_index = data_cache.get(p_field_name);
-
-	if (data_index >= data.size())
-	{
-		return Variant();
-	}
-
-	return data.get(data_index);
+	return data.get_value(p_field_name);
 }
 
 void GameDataEntry::set_data(String p_field_name, Variant p_data)
 {
-	if (!table_specification->has_field(p_field_name))
+	if (!parent->get_table_specification()->has_field(p_field_name))
 	{
 		return;
 	}
 
-	if (!data_cache.has(p_field_name))
-	{
-		int64_t new_index = data.size();
-		data.push_back(p_data);
-		data_cache.insert(p_field_name, new_index);
-		return;
-	}
-
-	data.set(data_cache.get(p_field_name), p_data);
-}
-
-void GameDataTable::_bind_methods()
-{
-	ClassDB::bind_method(D_METHOD("get_table_specification"), &GameDataTable::get_table_specification);
-	ClassDB::bind_method(D_METHOD("set_table_specification", "p_table_specification"), &GameDataTable::set_table_specification);
-	ClassDB::bind_method(D_METHOD("get_entry", "p_uuid"), &GameDataTable::get_entry);
-	ClassDB::bind_method(D_METHOD("set_entry", "p_uuid", "p_game_data_entry"), &GameDataTable::set_entry);
-	ClassDB::bind_method(D_METHOD("get_entry_field", "p_uuid", "p_field_name"), &GameDataTable::get_entry_field);
-	ClassDB::bind_method(D_METHOD("set_entry_field", "p_uuid", "p_field_name", "p_data"), &GameDataTable::set_entry_field);
-	ClassDB::bind_method(D_METHOD("get_entries", "p_uuids"), &GameDataTable::get_entries);
-	ClassDB::bind_method(D_METHOD("set_entries", "p_game_data_entries"), &GameDataTable::set_entries);
+	data.set_value(p_field_name, p_data);
 }
 
 GameDataTable::GameDataTable()
 	: table_specification(nullptr)
+	, parent(nullptr)
 {
 }
 
 GameDataTable::GameDataTable(const GameDataTable &p_game_data_table)
 	: table_specification(p_game_data_table.table_specification)
+	, parent(p_game_data_table.parent)
 	, entries(p_game_data_table.entries)
-	, entries_cache(p_game_data_table.entries_cache)
+{
+}
+
+GameDataTable::GameDataTable(GameDataDB *p_parent, TableSpecification *p_table_specificaiton)
+	: table_specification(p_table_specificaiton)
+	, parent(p_parent)
 {
 }
 
 GameDataTable::~GameDataTable()
 {
 	table_specification = nullptr;
-	entries.clear();
-	entries_cache.clear();
+	parent = nullptr;
+	entries.~VectorHashMapPair();
 }
 
-TableSpecification GameDataTable::get_table_specification() const
+TableSpecification *GameDataTable::get_table_specification() const
 {
-	return *table_specification;
+	return table_specification;
 }
 
 void GameDataTable::set_table_specification(const TableSpecification &p_table_specification)
@@ -138,36 +102,24 @@ void GameDataTable::set_table_specification(const TableSpecification &p_table_sp
 	table_specification->copy(p_table_specification);
 }
 
+GameDataDB *GameDataTable::get_parent() const
+{
+	return parent;
+}
+
+void GameDataTable::set_parent(GameDataDB *p_parent)
+{
+	parent = p_parent;
+}
+
 GameDataEntry GameDataTable::get_entry(UUID p_uuid) const
 {
-	if (!entries_cache.has(p_uuid))
-	{
-		ERR_PRINT_ED("Entry does not exist");
-		return GameDataEntry();
-	}
-
-	uint64_t entries_index = entries_cache.get(p_uuid);
-
-	if (entries_index >= entries.size())
-	{
-		ERR_PRINT_ED("Entry cache index error");
-		return GameDataEntry();
-	}
-
-	return entries.get(entries_index);
+	return entries.get_value(p_uuid);
 }
 
 void GameDataTable::set_entry(UUID p_uuid, const GameDataEntry &p_game_data_entry)
 {
-	if (!entries_cache.has(p_uuid))
-	{
-		int64_t new_index = entries.size();
-		entries.push_back(p_game_data_entry);
-		entries_cache.insert(p_uuid, new_index);
-		return;
-	}
-
-	entries.set(entries_cache.get(p_uuid), p_game_data_entry);
+	entries.set_value(p_uuid, p_game_data_entry);
 }
 
 Variant GameDataTable::get_entry_field(UUID p_uuid, String p_field_name) const
@@ -178,21 +130,7 @@ Variant GameDataTable::get_entry_field(UUID p_uuid, String p_field_name) const
 		return Variant();
 	}
 
-	if (!entries_cache.has(p_uuid))
-	{
-		ERR_PRINT_ED("Entry does not exist");
-		return Variant();
-	}
-
-	uint64_t entries_index = entries_cache.get(p_uuid);
-
-	if (entries_index >= entries.size())
-	{
-		ERR_PRINT_ED("Entry cache index error");
-		return Variant();
-	}
-
-	return entries.get(entries_index).get_data(p_field_name);
+	return entries.get_value(p_uuid).get_data(p_field_name);
 }
 
 void GameDataTable::set_entry_field(UUID p_uuid, String p_field_name, Variant p_data)
@@ -203,53 +141,15 @@ void GameDataTable::set_entry_field(UUID p_uuid, String p_field_name, Variant p_
 		return;
 	}
 
-	if (!entries_cache.has(p_uuid))
-	{
-		ERR_PRINT_ED("Entry does not exist");
-		return;
-	}
-
-	uint64_t entries_index = entries_cache.get(p_uuid);
-
-	if (entries_index >= entries.size())
-	{
-		ERR_PRINT_ED("Entry cache index error");
-		return;
-	}
-
-	entries.get_m(entries_index).set_data(p_field_name, p_data);
+	entries.get_value_m(p_uuid).set_data(p_field_name, p_data);
 }
 
 HashMap<UUID, GameDataEntry> GameDataTable::get_entries(Vector<UUID> p_uuids) const
 {
-	HashMap<UUID, GameDataEntry> r_entries;
-	if (!p_uuids.is_empty())
-	{
-		for (UUID id : p_uuids)
-		{
-			if (!entries_cache.has(id))
-			{
-				ERR_PRINT_ED("Entry does not exist");
-			}
-
-			r_entries.insert(id, get_entry(id));
-		}
-	}
-	else
-	{
-		for (GameDataEntry entry : entries)
-		{
-			r_entries.insert(entry.get_uuid(), entry);
-		}
-	}
-
-	return r_entries;
+	return entries.get_values(p_uuids);
 }
 
 void GameDataTable::set_entries(HashMap<UUID, GameDataEntry> p_game_data_entries)
 {
-	for (KeyValue<UUID, GameDataEntry> kv : p_game_data_entries)
-	{
-		set_entry(kv.key, kv.value);
-	}
+	entries.set_values(p_game_data_entries);
 }

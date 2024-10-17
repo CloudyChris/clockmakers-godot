@@ -10,55 +10,54 @@
 #include "core/variant/typed_array.h"
 #include "game_data_specifications.h"
 #include "uuid.h"
+#include "vector_hashmap_pair.h"
 
-class GameDataEntry : public TrackedObject
+class GameDataDB;
+
+class GameDataEntry : public Tracked
 {
-	GDCLASS(GameDataEntry, TrackedObject);
-
 private:
-	TableSpecification *table_specification;
 	GameDataTable *parent;
-	Vector<Variant> data;
-	HashMap<String, int> data_cache;
 
-protected:
-	static void _bind_methods();
+	String path;
+	VectorHashMapPair<String, Variant> data;
 
 public:
-	TableSpecification *get_table_specification() const;
-	void set_table_specification(const TableSpecification &p_table_specification);
+	GameDataTable *get_parent() const;
+	void set_parent(GameDataTable *p_parent);
 
-	GameDataTable &get_parent() const;
-	void set_parent(const GameDataTable &p_parent);
+	String get_path() const;
+	void set_path(String p_path);
 
 	Variant get_data(String p_field_name) const;
 	void set_data(String p_field_name, Variant p_data);
 
 	GameDataEntry();
 	GameDataEntry(const GameDataEntry &p_game_data_entry);
-	GameDataEntry(GameDataTable *p_parent, TableSpecification *p_table_specificaiton);
+	GameDataEntry(GameDataTable *p_parent);
 	~GameDataEntry();
 };
 
-class GameDataTable : public TrackedObject
+class GameDataTable
 {
-	GDCLASS(GameDataTable, TrackedObject);
-
 private:
 	TableSpecification *table_specification;
+	GameDataDB *parent;
 
-	Vector<GameDataEntry> entries;
-	HashMap<UUID, int> entries_cache;
-
-protected:
-	static void _bind_methods();
+	VectorHashMapPair<UUID, GameDataEntry> entries;
 
 public:
-	TableSpecification get_table_specification() const;
+	TableSpecification *get_table_specification() const;
 	void set_table_specification(const TableSpecification &p_table_specificaiton);
+
+	GameDataDB *get_parent() const;
+	void set_parent(GameDataDB *p_parent);
 
 	GameDataEntry get_entry(UUID p_uuid) const;
 	void set_entry(UUID p_uuid, const GameDataEntry &p_game_data_entry);
+
+	String get_entry_path(UUID p_uuid) const;
+	void set_entry_path(UUID p_uuid, String p_path);
 
 	Variant get_entry_field(UUID p_uuid, String p_field_name) const;
 	void set_entry_field(UUID p_uuid, String p_field_name, Variant p_data);
@@ -68,6 +67,7 @@ public:
 
 	GameDataTable();
 	GameDataTable(const GameDataTable &p_game_data_table);
+	GameDataTable(GameDataDB *p_parent, TableSpecification *p_table_specification);
 	~GameDataTable();
 };
 

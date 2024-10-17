@@ -17,7 +17,7 @@
 class GameDataManager
 {
 public:
-	enum DataType
+	enum CM_DataType
 	{
 		CM_DATA_TYPE_CORE,
 		CM_DATA_TYPE_USER,
@@ -37,10 +37,14 @@ private:
 	static GameDataDB tools_game_data_db;
 
 private:
-	static Error _load_data_registry(DataType p_data_type);
-	static Error _save_data_registry(DataType p_data_type);
-	static Error _load_data_table(String p_table_name, GameDataManager::DataType p_data_type);
-	static Error _save_data_table(String p_table_name, DataType p_data_type);
+	static Error _load_data_registry(CM_DataType p_data_type);
+	static Error _save_data_registry(CM_DataType p_data_type);
+	static Error _load_data_table(String p_table_name, GameDataManager::CM_DataType p_data_type);
+	static Error _save_data_table(String p_table_name, GameDataManager::CM_DataType p_data_type);
+	static Error _load_data(UUID p_uuid, String p_table_name, GameDataManager::CM_DataType p_data_type);
+	static Error _save_data(UUID p_uuid, String p_table_name, GameDataManager::CM_DataType p_data_type);
+	static Error _load_data_from_path(String p_path, String p_table_name, GameDataManager::CM_DataType p_data_type);
+	static Error _save_data_to_path(String p_path, String p_table_name, GameDataManager::CM_DataType p_data_type);
 
 public:
 	static Error load_core_data_registry();
@@ -58,6 +62,35 @@ public:
 	static Error save_core_data_table(String p_table_name);
 	static Error save_user_data_table(String p_table_name);
 	static Error save_tools_data_table(String p_table_name);
+
+	static Error load_core_data(UUID p_uuid, String p_table_name);
+	static Error load_user_data(UUID p_uuid, String p_table_name);
+	static Error load_tools_data(UUID p_uuid, String p_table_name);
+
+	static Error save_core_data(UUID p_uuid, String p_table_name);
+	static Error save_user_data(UUID p_uuid, String p_table_name);
+	static Error save_tools_data(UUID p_uuid, String p_table_name);
+
+	/* NOTE ON THE FLOW OF DATA:
+	 * 1) Any request will be issued to the GameDataManager (requiring parity with all its subdivisions (DB, Table, Entry) for its functionality)
+	 * 2) Any request for data will be issued with the uuid and the name of the table, in addition to the CM_DataType
+	 */
+	// Registry serialization
+	// JSON
+	//---------------------------------
+	// {
+	// 	table_name : {
+	// 		table_specification: TableSpecification,
+	// 		entries : {
+	// 			uuid : path <String>,
+	// 			.
+	// 			.
+	// 		}
+	// 	},
+	// 	.
+	// 	.
+	// }
+	//---------------------------------
 };
 
 #endif // GAME_DATA_MANAGER_H

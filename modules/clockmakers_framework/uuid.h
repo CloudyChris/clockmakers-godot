@@ -44,6 +44,21 @@ public:
 	~UUID();
 };
 
+class Tracked
+{
+private:
+	UUID uuid;
+
+public:
+	UUID get_uuid() const;
+	UUID &get_uuid_m();
+	void set_uuid(const UUID &p_uuid);
+
+	Tracked();
+	Tracked(const Tracked &p_tracked);
+	~Tracked();
+};
+
 class TrackedObject : public Object
 {
 	GDCLASS(TrackedObject, Object);
@@ -61,6 +76,7 @@ public:
 
 	TrackedObject();
 	TrackedObject(const TrackedObject &p_tracked_object);
+	~TrackedObject();
 };
 
 #endif

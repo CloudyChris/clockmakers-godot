@@ -10,27 +10,22 @@
 #include "core/variant/typed_array.h"
 #include "game_data_table.h"
 #include "uuid.h"
+#include "vector_hashmap_pair.h"
 
-class GameDataDB : public Object
+class GameDataDB
 {
-	GDCLASS(GameDataDB, Object);
-
 private:
-	Vector<TableSpecification> table_specifications;
-	HashMap<String, uint64_t> table_specifications_cache;
-
-	Vector<GameDataTable> tables;
-	HashMap<String, uint64_t> tables_cache;
-
-protected:
-	static void _bind_methods();
+	VectorHashMapPair<String, TableSpecification *> table_specifications;
+	VectorHashMapPair<String, GameDataTable> tables;
 
 public:
-	TableSpecification get_table_specification(String p_table_name) const;
-	void set_table_specification(String p_table_name, const TableSpecification &p_table_specification);
+	bool has_table(String p_table_name) const;
 
-	HashMap<String, TableSpecification> get_table_specifications(Vector<String> p_table_names) const;
-	void set_table_specifications(HashMap<String, TableSpecification> p_table_specifications);
+	TableSpecification *get_table_specification(String p_table_name) const;
+	void set_table_specification(String p_table_name, TableSpecification *p_table_specification);
+
+	HashMap<String, TableSpecification *> get_table_specifications(Vector<String> p_table_names) const;
+	void set_table_specifications(HashMap<String, TableSpecification *> p_table_specifications);
 
 	GameDataTable get_table(String p_table_name) const;
 	void set_table(String p_table_name, const GameDataTable &p_table);

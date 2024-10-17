@@ -21,15 +21,6 @@ void initialize_clockmakers_framework_module(ModuleInitializationLevel p_level)
 	GDREGISTER_CLASS(UUID);
 	GDREGISTER_CLASS(TrackedObject);
 
-	/* GAME DATA SPECIFICATIONS */
-	GDREGISTER_CLASS(FieldSpecification);
-	GDREGISTER_CLASS(TableSpecification);
-
-	/* GAME DATA CONTAINERS */
-	GDREGISTER_CLASS(GameDataEntry);
-	GDREGISTER_CLASS(GameDataTable);
-	GDREGISTER_CLASS(GameDataDB);
-
 	/* SINGLETONS CLASS REGISTRATION */
 	GDREGISTER_CLASS(cm_singleton_interfaces::GameDataManager);
 
