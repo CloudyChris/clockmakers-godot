@@ -90,6 +90,22 @@ UUID::~UUID()
 	}
 }
 
+UUID UUID::empty()
+{
+	UUID r_uuid;
+
+	uint8_t *uuid_0_fill = (uint8_t *)malloc(uuid_size);
+
+	for (uint8_t i = 0; i < uuid_size; i++)
+	{
+		uuid_0_fill[i] = 0;
+	}
+
+	r_uuid.set_uuid(uuid_0_fill);
+
+	return r_uuid;
+}
+
 void UUID::_generate_uuid()
 {
 	Math::randomize();
@@ -302,6 +318,15 @@ Tracked::~Tracked()
 	uuid.~UUID();
 }
 
+Tracked Tracked::empty()
+{
+	Tracked r_tracked;
+
+	r_tracked.set_uuid(UUID::empty());
+
+	return r_tracked;
+}
+
 UUID Tracked::get_uuid() const
 {
 	return uuid;
@@ -339,6 +364,15 @@ TrackedObject::TrackedObject(const TrackedObject &p_tracked_object)
 TrackedObject::~TrackedObject()
 {
 	uuid.~UUID();
+}
+
+TrackedObject TrackedObject::empty()
+{
+	TrackedObject r_tracked;
+
+	r_tracked.set_uuid(UUID::empty());
+
+	return r_tracked;
 }
 
 UUID TrackedObject::get_uuid() const

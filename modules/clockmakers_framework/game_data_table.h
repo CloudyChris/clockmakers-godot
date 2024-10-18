@@ -3,38 +3,69 @@
 #ifndef GAME_DATA_TABLE_H
 #define GAME_DATA_TABLE_H
 
+#pragma region godot_includes
 #include "core/object/class_db.h"
 #include "core/object/object.h"
 #include "core/templates/hash_map.h"
 #include "core/typedefs.h"
 #include "core/variant/typed_array.h"
+#pragma endregion godot_includes
+
+#pragma region cm_includes
+#include "cm_enums.h"
 #include "game_data_specifications.h"
 #include "uuid.h"
 #include "vector_hashmap_pair.h"
+#pragma endregion cm_includes
 
 class GameDataDB;
+class GameDataEntry;
+class GameDataTable;
+class GameDataManager;
+
+struct GameDataField
+{
+	bool is_reference;
+	UUID ref_uuid;
+	String ref_table_name;
+	cm_enums::CM_DataType ref_type;
+
+	String path;
+
+	Variant data;
+};
 
 class GameDataEntry : public Tracked
 {
 private:
+	GameDataManager *manager;
 	GameDataTable *parent;
 
 	String path;
-	VectorHashMapPair<String, Variant> data;
+	VectorHashMapPair<String, GameDataField> data;
 
 public:
+	static GameDataEntry empty();
+
+	GameDataManager *get_manager() const;
+	void set_manager(GameDataManager *p_manager);
+
 	GameDataTable *get_parent() const;
 	void set_parent(GameDataTable *p_parent);
 
 	String get_path() const;
 	void set_path(String p_path);
 
-	Variant get_data(String p_field_name) const;
-	void set_data(String p_field_name, Variant p_data);
+	GameDataField *get_field_const(String p_field_name) const;
+	GameDataField *get_field(String p_field_name);
+	GameDataField *create_field(String p_field_name);
+
+	HashMap<String, GameDataField *> get_fields_const(Vector<String> p_field_names) const;
+	HashMap<String, GameDataField *> get_fields(Vector<String> p_field_names);
 
 	GameDataEntry();
 	GameDataEntry(const GameDataEntry &p_game_data_entry);
-	GameDataEntry(GameDataTable *p_parent);
+	GameDataEntry(GameDataManager *p_manager, GameDataTable *p_parent);
 	~GameDataEntry();
 };
 
@@ -42,6 +73,7 @@ class GameDataTable
 {
 private:
 	TableSpecification *table_specification;
+	GameDataManager *manager;
 	GameDataDB *parent;
 
 	VectorHashMapPair<UUID, GameDataEntry> entries;
@@ -50,20 +82,18 @@ public:
 	TableSpecification *get_table_specification() const;
 	void set_table_specification(const TableSpecification &p_table_specificaiton);
 
+	GameDataManager *get_manager() const;
+	void set_manager(GameDataManager *p_manager);
+
 	GameDataDB *get_parent() const;
 	void set_parent(GameDataDB *p_parent);
 
-	GameDataEntry get_entry(UUID p_uuid) const;
-	void set_entry(UUID p_uuid, const GameDataEntry &p_game_data_entry);
+	GameDataEntry *get_entry_const(UUID p_uuid) const;
+	GameDataEntry *get_entry(UUID p_uuid);
+	GameDataEntry *create_entry(UUID p_uuid);
 
-	String get_entry_path(UUID p_uuid) const;
-	void set_entry_path(UUID p_uuid, String p_path);
-
-	Variant get_entry_field(UUID p_uuid, String p_field_name) const;
-	void set_entry_field(UUID p_uuid, String p_field_name, Variant p_data);
-
-	HashMap<UUID, GameDataEntry> get_entries(Vector<UUID> p_uuids) const;
-	void set_entries(HashMap<UUID, GameDataEntry> p_game_data_entries);
+	HashMap<UUID, GameDataEntry *> get_entries_const(Vector<UUID> p_uuids) const;
+	HashMap<UUID, GameDataEntry *> get_entries(Vector<UUID> p_uuids);
 
 	GameDataTable();
 	GameDataTable(const GameDataTable &p_game_data_table);

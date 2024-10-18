@@ -3,8 +3,10 @@
 #ifndef UUID_H
 #define UUID_H
 
+#pragma region godot_includes
 #include "core/object/class_db.h"
 #include "core/variant/typed_array.h"
+#pragma endregion godot_includes
 
 class UUID : public Object
 {
@@ -23,6 +25,8 @@ protected:
 	static void _bind_methods();
 
 public:
+	static UUID empty();
+
 	char *get_uuid_string();
 	char *get_uuid_string_const() const;
 	void set_uuid_string(char *p_uuid_string);
@@ -50,6 +54,8 @@ private:
 	UUID uuid;
 
 public:
+	static Tracked empty();
+
 	UUID get_uuid() const;
 	UUID &get_uuid_m();
 	void set_uuid(const UUID &p_uuid);
@@ -70,6 +76,8 @@ protected:
 	static void _bind_methods();
 
 public:
+	static TrackedObject empty();
+
 	UUID get_uuid() const;
 	UUID &get_uuid_m();
 	void set_uuid(const UUID &p_uuid);

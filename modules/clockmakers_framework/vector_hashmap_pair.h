@@ -6,6 +6,7 @@
 #include "core/templates/hash_map.h"
 #include "core/variant/typed_array.h"
 
+// !IMPORTANT! Only supports TValue types with a default constructor
 template <typename TKey, typename TValue>
 class VectorHashMapPair
 {
@@ -16,9 +17,16 @@ private:
 public:
 	bool has(TKey p_key) const;
 
+	TValue *get_pointer_const(TKey p_key) const;
+	TValue *get_pointer(TKey p_key);
+	TValue *create_one(TKey p_key);
+
 	TValue get_value(TKey p_key) const;
 	TValue &get_value_m(TKey p_key);
 	void set_value(TKey p_key, const TValue &p_value);
+
+	HashMap<TKey, TValue *> get_pointers_const(Vector<TKey> p_keys) const;
+	HashMap<TKey, TValue *> get_pointers(Vector<TKey> p_keys);
 
 	HashMap<TKey, TValue> get_values(Vector<TKey> p_keys) const;
 	void set_values(HashMap<TKey, TValue> p_pairs);

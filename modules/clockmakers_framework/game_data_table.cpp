@@ -1,21 +1,28 @@
 /* game_data_table.cpp */
 
-#include "game_data_table.h"
 #include "core/object/object.h"
+
+#include "game_data_db.h"
+#include "game_data_manager.h"
+#include "game_data_table.h"
 
 GameDataEntry::GameDataEntry()
 	: parent(nullptr)
+	, path("")
 {
 }
 
 GameDataEntry::GameDataEntry(const GameDataEntry &p_game_data_entry)
 	: parent(p_game_data_entry.parent)
+	, path(p_game_data_entry.path)
 	, data(p_game_data_entry.data)
 {
 }
 
-GameDataEntry::GameDataEntry(GameDataTable *p_parent)
-	: parent(p_parent)
+GameDataEntry::GameDataEntry(GameDataManager *p_manager, GameDataTable *p_parent)
+	: manager(p_manager)
+	, parent(p_parent)
+	, path("")
 {
 }
 
@@ -24,6 +31,15 @@ GameDataEntry::~GameDataEntry()
 	parent = nullptr;
 
 	data.~VectorHashMapPair();
+}
+
+GameDataEntry GameDataEntry::empty()
+{
+	GameDataEntry r_entry;
+
+	r_entry.set_uuid(UUID::empty());
+
+	return r_entry;
 }
 
 GameDataTable *GameDataEntry::get_parent() const
@@ -46,24 +62,29 @@ void GameDataEntry::set_path(String p_path)
 	path = p_path;
 }
 
-Variant GameDataEntry::get_data(String p_field_name) const
+GameDataField *GameDataEntry::get_field_const(String p_field_name) const
 {
-	if (!parent->get_table_specification()->has_field(p_field_name))
-	{
-		return Variant();
-	}
-
-	return data.get_value(p_field_name);
+	return data.get_pointer_const(p_field_name);
 }
 
-void GameDataEntry::set_data(String p_field_name, Variant p_data)
+GameDataField *GameDataEntry::get_field(String p_field_name)
 {
-	if (!parent->get_table_specification()->has_field(p_field_name))
-	{
-		return;
-	}
+	return data.get_pointer(p_field_name);
+}
 
-	data.set_value(p_field_name, p_data);
+GameDataField *GameDataEntry::create_field(String p_field_name)
+{
+	return data.create_one(p_field_name);
+}
+
+HashMap<String, GameDataField *> GameDataEntry::get_fields_const(Vector<String> p_field_names) const
+{
+	return data.get_pointers_const(p_field_names);
+}
+
+HashMap<String, GameDataField *> GameDataEntry::get_fields(Vector<String> p_field_names)
+{
+	return data.get_pointers(p_field_names);
 }
 
 GameDataTable::GameDataTable()
@@ -112,44 +133,27 @@ void GameDataTable::set_parent(GameDataDB *p_parent)
 	parent = p_parent;
 }
 
-GameDataEntry GameDataTable::get_entry(UUID p_uuid) const
+GameDataEntry *GameDataTable::get_entry_const(UUID p_uuid) const
 {
-	return entries.get_value(p_uuid);
+	return entries.get_pointer_const(p_uuid);
 }
 
-void GameDataTable::set_entry(UUID p_uuid, const GameDataEntry &p_game_data_entry)
+GameDataEntry *GameDataTable::get_entry(UUID p_uuid)
 {
-	entries.set_value(p_uuid, p_game_data_entry);
+	return entries.get_pointer(p_uuid);
 }
 
-Variant GameDataTable::get_entry_field(UUID p_uuid, String p_field_name) const
+GameDataEntry *GameDataTable::create_entry(UUID p_uuid)
 {
-	if (!table_specification->has_field(p_field_name))
-	{
-		ERR_PRINT_ED("Field not defined in table specification");
-		return Variant();
-	}
-
-	return entries.get_value(p_uuid).get_data(p_field_name);
+	return entries.create_one(p_uuid);
 }
 
-void GameDataTable::set_entry_field(UUID p_uuid, String p_field_name, Variant p_data)
+HashMap<UUID, GameDataEntry *> GameDataTable::get_entries_const(Vector<UUID> p_uuids) const
 {
-	if (!table_specification->has_field(p_field_name))
-	{
-		ERR_PRINT_ED("Field not defined in table specification");
-		return;
-	}
-
-	entries.get_value_m(p_uuid).set_data(p_field_name, p_data);
+	return entries.get_pointers_const(p_uuids);
 }
 
-HashMap<UUID, GameDataEntry> GameDataTable::get_entries(Vector<UUID> p_uuids) const
+HashMap<UUID, GameDataEntry *> GameDataTable::get_entries(Vector<UUID> p_uuids)
 {
-	return entries.get_values(p_uuids);
-}
-
-void GameDataTable::set_entries(HashMap<UUID, GameDataEntry> p_game_data_entries)
-{
-	entries.set_values(p_game_data_entries);
+	return entries.get_pointers(p_uuids);
 }
