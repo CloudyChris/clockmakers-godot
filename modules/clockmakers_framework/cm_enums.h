@@ -6,11 +6,12 @@
 namespace cm_enums
 {
 
-enum CM_DataType
+enum CM_DataChannel
 {
-	CM_DATA_TYPE_CORE,
-	CM_DATA_TYPE_USER,
-	CM_DATA_TYPE_TOOLS
+	CM_DATA_CHANNEL_NONE,
+	CM_DATA_CHANNEL_CORE,
+	CM_DATA_CHANNEL_USER,
+	CM_DATA_CHANNEL_TOOLS
 };
 
 } // namespace cm_enums

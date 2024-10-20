@@ -5,6 +5,8 @@
 template <typename TKey, typename TValue>
 VectorHashMapPair<TKey, TValue>::VectorHashMapPair()
 {
+	CRASH_COND_MSG(!std::is_default_constructible_v<TValue>, "TValue type is not default constructible");
+	CRASH_COND_MSG(!std::is_trivially_destructible_v<TValue>, "TValue type is not trivially destructible");
 }
 
 template <typename TKey, typename TValue>
@@ -28,7 +30,7 @@ bool VectorHashMapPair<TKey, TValue>::has(TKey p_key) const
 }
 
 template <typename TKey, typename TValue>
-TValue *VectorHashMapPair<TKey, TValue>::get_pointer_const(TKey p_key) const
+TValue *VectorHashMapPair<TKey, TValue>::get_one_const(TKey p_key) const
 {
 	if (!values.cache.has(p_key))
 	{
@@ -48,7 +50,7 @@ TValue *VectorHashMapPair<TKey, TValue>::get_pointer_const(TKey p_key) const
 }
 
 template <typename TKey, typename TValue>
-TValue *VectorHashMapPair<TKey, TValue>::get_pointer(TKey p_key)
+TValue *VectorHashMapPair<TKey, TValue>::get_one(TKey p_key)
 {
 	if (!values.cache.has(p_key))
 	{
@@ -78,106 +80,66 @@ TValue *VectorHashMapPair<TKey, TValue>::create_one(TKey p_key)
 }
 
 template <typename TKey, typename TValue>
-TValue VectorHashMapPair<TKey, TValue>::get_value(TKey p_key) const
+bool VectorHashMapPair<TKey, TValue>::delete_one(TKey p_key)
 {
-	CRASH_COND_MSG(!values.cache.has(p_key), "Key does not exist");
+	if (!values.cache.has(p_key))
+	{
+		ERR_PRINT_ED("Key does not exist");
+		return false;
+	}
 
 	uint64_t values_index = values_cache.get(p_key);
 
-	return values.get(values_index);
-}
-
-template <typename TKey, typename TValue>
-TValue &VectorHashMapPair<TKey, TValue>::get_value_m(TKey p_key)
-{
-	CRASH_COND_MSG(!values.cache.has(p_key), "Key does not exist");
-
-	uint64_t values_index = values_cache.get(p_key);
-
-	return values.get_m(values_index);
-}
-
-template <typename TKey, typename TValue>
-void VectorHashMapPair<TKey, TValue>::set_value(TKey p_key, const TValue &p_value)
-{
-	if (!values_cache.has(p_key))
+	if (values_index > values.size())
 	{
-		int64_t new_index = values.size();
-		values.push_back(p_value);
-		values_cache.insert(p_key, new_index);
-		return;
+		ERR_PRINT_ED("Values cache index error");
+		return false;
 	}
 
-	values.set(values_cache.get(p_key), p_value);
+	values_cache.erase(p_key);
+	TValue *to_be_deleted = get_one(p_key);
+	to_be_deleted->~TValue();
+	values.remove_at(values_index);
+
+	return true;
 }
 
 template <typename TKey, typename TValue>
-HashMap<TKey, TValue *> VectorHashMapPair<TKey, TValue>::get_pointers_const(Vector<TKey> p_keys) const
+HashMap<TKey, TValue *> VectorHashMapPair<TKey, TValue>::get_const(Vector<TKey> p_keys) const
 {
 	HashMap<TKey, TValue> r_pairs;
 	if (!p_keys.is_empty())
 	{
 		for (TKey key : p_keys)
 		{
-			r_pairs.insert(key, get_pointer_const(key));
+			r_pairs.insert(key, get_one_const(key));
 		}
 	}
 	else
 	{
 		for (KeyValue<TKey, uint64_t> kv : values_cache)
 		{
-			r_pairs.insert(kv.key, get_pointer_const(kv.key));
+			r_pairs.insert(kv.key, get_one_const(kv.key));
 		}
 	}
 }
 
 template <typename TKey, typename TValue>
-HashMap<TKey, TValue *> VectorHashMapPair<TKey, TValue>::get_pointers(Vector<TKey> p_keys)
+HashMap<TKey, TValue *> VectorHashMapPair<TKey, TValue>::get(Vector<TKey> p_keys)
 {
 	HashMap<TKey, TValue> r_pairs;
 	if (!p_keys.is_empty())
 	{
 		for (TKey key : p_keys)
 		{
-			r_pairs.insert(key, get_pointer(key));
+			r_pairs.insert(key, get_one(key));
 		}
 	}
 	else
 	{
 		for (KeyValue<TKey, uint64_t> kv : values_cache)
 		{
-			r_pairs.insert(kv.key, get_pointer(kv.key));
+			r_pairs.insert(kv.key, get_one(kv.key));
 		}
-	}
-}
-
-template <typename TKey, typename TValue>
-HashMap<TKey, TValue> VectorHashMapPair<TKey, TValue>::get_values(Vector<TKey> p_keys) const
-{
-	HashMap<TKey, TValue> r_pairs;
-	if (!p_keys.is_empty())
-	{
-		for (TKey key : p_keys)
-		{
-			r_pairs.insert(key, get_value(key));
-		}
-	}
-	else
-	{
-		for (KeyValue<TKey, uint64_t> kv : values_cache)
-		{
-			r_pairs.insert(kv.key, get_value(kv.key));
-		}
-	}
-
-	return r_pairs;
-}
-
-template <typename TKey, typename TValue>
-void VectorHashMapPair<TKey, TValue>::set_values(HashMap<TKey, TValue> p_pairs)
-{
-	for (KeyValue<TKey, TValue> kv : p_pairs)
-	{
-		set_value(kv.key, kv.value);
 	}
 }

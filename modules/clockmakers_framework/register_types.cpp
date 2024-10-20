@@ -2,12 +2,13 @@
 
 #include "register_types.h"
 
-#include "cm_singleton_interfaces.h"
 #include "core/config/engine.h"
 #include "core/object/class_db.h"
-#include "game_data_db.h"
-#include "game_data_specifications.h"
-#include "game_data_table.h"
+
+#include "cm_singleton_interfaces.h"
+#include "data_manager/game_data_db.h"
+#include "data_manager/game_data_specifications.h"
+#include "data_manager/game_data_table.h"
 #include "uuid.h"
 
 void initialize_clockmakers_framework_module(ModuleInitializationLevel p_level)

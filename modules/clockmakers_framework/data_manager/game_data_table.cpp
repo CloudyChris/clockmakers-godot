@@ -7,13 +7,15 @@
 #include "game_data_table.h"
 
 GameDataEntry::GameDataEntry()
-	: parent(nullptr)
+	: manager(nullptr)
+	, parent(nullptr)
 	, path("")
 {
 }
 
 GameDataEntry::GameDataEntry(const GameDataEntry &p_game_data_entry)
-	: parent(p_game_data_entry.parent)
+	: manager(p_game_data_entry.manager)
+	, parent(p_game_data_entry.parent)
 	, path(p_game_data_entry.path)
 	, data(p_game_data_entry.data)
 {
@@ -28,6 +30,7 @@ GameDataEntry::GameDataEntry(GameDataManager *p_manager, GameDataTable *p_parent
 
 GameDataEntry::~GameDataEntry()
 {
+	manager = nullptr;
 	parent = nullptr;
 
 	data.~VectorHashMapPair();
@@ -64,12 +67,12 @@ void GameDataEntry::set_path(String p_path)
 
 GameDataField *GameDataEntry::get_field_const(String p_field_name) const
 {
-	return data.get_pointer_const(p_field_name);
+	return data.get_one_const(p_field_name);
 }
 
 GameDataField *GameDataEntry::get_field(String p_field_name)
 {
-	return data.get_pointer(p_field_name);
+	return data.get_one(p_field_name);
 }
 
 GameDataField *GameDataEntry::create_field(String p_field_name)
@@ -79,12 +82,12 @@ GameDataField *GameDataEntry::create_field(String p_field_name)
 
 HashMap<String, GameDataField *> GameDataEntry::get_fields_const(Vector<String> p_field_names) const
 {
-	return data.get_pointers_const(p_field_names);
+	return data.get_const(p_field_names);
 }
 
 HashMap<String, GameDataField *> GameDataEntry::get_fields(Vector<String> p_field_names)
 {
-	return data.get_pointers(p_field_names);
+	return data.get(p_field_names);
 }
 
 GameDataTable::GameDataTable()
@@ -118,9 +121,9 @@ TableSpecification *GameDataTable::get_table_specification() const
 	return table_specification;
 }
 
-void GameDataTable::set_table_specification(const TableSpecification &p_table_specification)
+void GameDataTable::set_table_specification(TableSpecification *p_table_specification)
 {
-	table_specification->copy(p_table_specification);
+	table_specification = p_table_specification;
 }
 
 GameDataDB *GameDataTable::get_parent() const
@@ -135,12 +138,12 @@ void GameDataTable::set_parent(GameDataDB *p_parent)
 
 GameDataEntry *GameDataTable::get_entry_const(UUID p_uuid) const
 {
-	return entries.get_pointer_const(p_uuid);
+	return entries.get_one_const(p_uuid);
 }
 
 GameDataEntry *GameDataTable::get_entry(UUID p_uuid)
 {
-	return entries.get_pointer(p_uuid);
+	return entries.get_one(p_uuid);
 }
 
 GameDataEntry *GameDataTable::create_entry(UUID p_uuid)
@@ -150,10 +153,10 @@ GameDataEntry *GameDataTable::create_entry(UUID p_uuid)
 
 HashMap<UUID, GameDataEntry *> GameDataTable::get_entries_const(Vector<UUID> p_uuids) const
 {
-	return entries.get_pointers_const(p_uuids);
+	return entries.get_const(p_uuids);
 }
 
 HashMap<UUID, GameDataEntry *> GameDataTable::get_entries(Vector<UUID> p_uuids)
 {
-	return entries.get_pointers(p_uuids);
+	return entries.get(p_uuids);
 }

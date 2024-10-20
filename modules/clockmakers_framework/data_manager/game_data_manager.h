@@ -13,16 +13,16 @@
 #pragma endregion godot_includes
 
 #pragma region cm_includes
-#include "cm_enums.h"
+#include "../cm_enums.h"
+#include "../uuid.h"
+#include "../vector_hashmap_pair.h"
 #include "game_data_db.h"
 #include "game_data_specifications.h"
 #include "game_data_table.h"
-#include "uuid.h"
 #pragma endregion cm_includes
 
 class GameDataManager
 {
-public:
 private:
 	static PackedStringArray core_data_dir_path;
 	static PackedStringArray core_data_registry_path;
@@ -31,20 +31,22 @@ private:
 	static PackedStringArray tools_data_dir_path;
 	static PackedStringArray tools_data_registry_path;
 
+	static VectorHashMapPair<String, TableSpecification> table_specifications;
+
 	static GameDataDB core_game_data_db;
 	static GameDataDB user_game_data_db;
 	static GameDataDB tools_game_data_db;
 
 public:
 	// Load & Save Data
-	static Error load_data_registry(cm_enums::CM_DataType p_data_type);
-	static Error save_data_registry(cm_enums::CM_DataType p_data_type);
-	static Error load_data_table(String p_table_name, cm_enums::CM_DataType p_data_type);
-	static Error save_data_table(String p_table_name, cm_enums::CM_DataType p_data_type);
-	static Error load_data(UUID p_uuid, String p_table_name, cm_enums::CM_DataType p_data_type);
-	static Error save_data(UUID p_uuid, String p_table_name, cm_enums::CM_DataType p_data_type);
-	static Error load_data_from_path(String p_path, String p_table_name, cm_enums::CM_DataType p_data_type);
-	static Error save_data_to_path(String p_path, String p_table_name, cm_enums::CM_DataType p_data_type);
+	static Error load_data_registry(cm_enums::CM_DataChannel p_data_channel);
+	static Error save_data_registry(cm_enums::CM_DataChannel p_data_channel);
+	static Error load_data_table(String p_table_name, cm_enums::CM_DataChannel p_data_channel);
+	static Error save_data_table(String p_table_name, cm_enums::CM_DataChannel p_data_channel);
+	static Error load_data(UUID p_uuid, String p_table_name, cm_enums::CM_DataChannel p_data_channel);
+	static Error save_data(UUID p_uuid, String p_table_name, cm_enums::CM_DataChannel p_data_channel);
+	static Error load_data_from_path(String p_path, String p_table_name, cm_enums::CM_DataChannel p_data_channel);
+	static Error save_data_to_path(String p_path, String p_table_name, cm_enums::CM_DataChannel p_data_channel);
 
 	// Data getters and setters
 	// TODO
@@ -61,7 +63,7 @@ public:
 	// 		table_name : {
 	// 			table_specification: TableSpecification,
 	// 			entries : {
-	// 				uuid : path <String>,
+	// 				uuid : path <String>
 	// 				.
 	// 				.
 	// 			}
@@ -71,9 +73,9 @@ public:
 	// 	},
 	// 	uuids : {
 	// 		uuid : {
-	// 			data_type,
-	// 			table_name,
-	// 			path
+	// 			data_channel <CM_DataChannel>,
+	// 			table_name <String>,
+	// 			path <String>
 	// 		},
 	// 		.
 	// 		.
