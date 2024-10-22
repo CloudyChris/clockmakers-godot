@@ -30,11 +30,6 @@ class GameDataTable;
 // 	property_info: PropertyInfo
 // }
 //---------------------------------
-//
-// BINARY
-//---------------------------------
-// WIP
-//---------------------------------
 struct FieldSpecification
 {
 	String name = "";
@@ -43,11 +38,11 @@ struct FieldSpecification
 	cm_enums::CM_DataChannel ref_channel = cm_enums::CM_DataChannel::CM_DATA_CHANNEL_NONE;
 	PropertyInfo info = PropertyInfo();
 
-	Dictionary to_dict();
+	Dictionary to_dict() const;
 	void from_dict(Dictionary p_dict);
 
-	JSON to_json();
-	void from_json();
+	String to_json(uint8_t p_indent) const;
+	void from_json(JSON p_json);
 
 	FieldSpecification();
 	~FieldSpecification();
@@ -59,18 +54,13 @@ struct FieldSpecification
 // {
 // 	name: <String>,
 // 	path: <String>,
-// 	channel: <cm_enums::CM_DataChannel>
+// 	channel: <(String)cm_enums::CM_DataChannel>
 // 	fields: [
 // 		FieldSpecification,
 // 		.
 // 		.
 // 	]
 // }
-//---------------------------------
-//
-// BINARY
-//---------------------------------
-// WIP
 //---------------------------------
 struct TableSpecification
 {
@@ -80,10 +70,10 @@ struct TableSpecification
 
 	VectorHashMapPair<String, FieldSpecification> fields;
 
-	Dictionary to_dict();
+	Dictionary to_dict() const;
 	void from_dict(Dictionary p_dict);
 
-	JSON to_json();
+	String to_json(uint8_t p_indent) const;
 	void from_json();
 
 	TableSpecification();

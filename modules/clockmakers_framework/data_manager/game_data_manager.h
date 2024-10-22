@@ -41,10 +41,13 @@ public:
 	// Load & Save Data
 	static Error load_data_registry(cm_enums::CM_DataChannel p_data_channel);
 	static Error save_data_registry(cm_enums::CM_DataChannel p_data_channel);
+
 	static Error load_data_table(String p_table_name, cm_enums::CM_DataChannel p_data_channel);
 	static Error save_data_table(String p_table_name, cm_enums::CM_DataChannel p_data_channel);
+
 	static Error load_data(UUID p_uuid, String p_table_name, cm_enums::CM_DataChannel p_data_channel);
 	static Error save_data(UUID p_uuid, String p_table_name, cm_enums::CM_DataChannel p_data_channel);
+
 	static Error load_data_from_path(String p_path, String p_table_name, cm_enums::CM_DataChannel p_data_channel);
 	static Error save_data_to_path(String p_path, String p_table_name, cm_enums::CM_DataChannel p_data_channel);
 
@@ -73,7 +76,7 @@ public:
 	// 	},
 	// 	uuids : {
 	// 		uuid : {
-	// 			data_channel <CM_DataChannel>,
+	// 			data_channel <(String)CM_DataChannel>,
 	// 			table_name <String>,
 	// 			path <String>
 	// 		},
