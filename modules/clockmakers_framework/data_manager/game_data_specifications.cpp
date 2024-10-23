@@ -22,7 +22,7 @@ void FieldSpecification::from_dict(Dictionary p_dict)
 	// TODO
 }
 
-String FieldSpecification::to_json(uint8_t p_indent = 0) const
+String FieldSpecification::to_json(uint8_t p_indent) const
 {
 	String ending = ",\n";
 	String ending_string = "\",\n";
@@ -34,7 +34,7 @@ String FieldSpecification::to_json(uint8_t p_indent = 0) const
 		indent += " ";
 	}
 
-	String json_string = "{\n";
+	String json_string = indent + "{\n";
 
 	// name
 	json_string += indent + tab + "name: \"" + name + ending_string;
@@ -46,7 +46,7 @@ String FieldSpecification::to_json(uint8_t p_indent = 0) const
 	json_string += indent + tab + "ref_table_name: \"" + ref_table_name + ending_string;
 
 	// ref_channel
-	json_string += indent + tab + "ref_channel: \"" + String(cm_enums::GetStringCM_DataChannel(ref_channel)) + ending_string;
+	json_string += indent + tab + "ref_channel: \"" + String(cm_enums::get_string_CM_DataChannel(ref_channel)) + ending_string;
 
 	// property_info
 	json_string += indent + tab + "property_info: {\n";
@@ -89,4 +89,54 @@ void TableSpecification::from_dict(Dictionary p_dict)
 String TableSpecification::to_json(uint8_t p_indent) const
 {
 	// TODO
+	String ending = ",\n";
+	String ending_string = "\",\n";
+	String indent = "";
+	String tab = "    ";
+
+	for (int i = 0; i < p_indent * 4; i++)
+	{
+		indent += " ";
+	}
+
+	String json_string = "{\n";
+
+	// name
+	json_string += indent + tab + "name: \"" + name + ending_string;
+
+	// path
+	json_string += indent + tab + "path: \"" + path + ending_string;
+
+	// channel
+	json_string += indent + tab + "channel: \"" + String(cm_enums::get_string_CM_DataChannel(channel)) + ending_string;
+
+	// fields
+	json_string += indent + tab + "fields: [";
+
+	if (fields.is_empty())
+	{
+		json_string += "]" + ending;
+	}
+	else
+	{
+		json_string += "\n";
+
+		HashMap<String, FieldSpecification *> l_fields = fields.get_const();
+
+		int count_processed = 0;
+
+		for (KeyValue<String, FieldSpecification *> kv : l_fields)
+		{
+			json_string += kv.value->to_json(p_indent + 2);
+			count_processed++;
+
+			json_string += (count_processed < l_fields.size() ? ending : "\n");
+		}
+	}
+
+	json_string += indent + tab + "]\n";
+
+	json_string += indent + "}";
+
+	return json_string;
 }

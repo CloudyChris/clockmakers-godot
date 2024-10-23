@@ -41,7 +41,7 @@ struct FieldSpecification
 	Dictionary to_dict() const;
 	void from_dict(Dictionary p_dict);
 
-	String to_json(uint8_t p_indent) const;
+	String to_json(uint8_t p_indent = 0) const;
 	void from_json(JSON p_json);
 
 	FieldSpecification();
@@ -73,7 +73,7 @@ struct TableSpecification
 	Dictionary to_dict() const;
 	void from_dict(Dictionary p_dict);
 
-	String to_json(uint8_t p_indent) const;
+	String to_json(uint8_t p_indent = 0) const;
 	void from_json();
 
 	TableSpecification();

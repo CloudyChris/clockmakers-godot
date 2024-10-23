@@ -24,6 +24,12 @@ VectorHashMapPair<TKey, TValue>::~VectorHashMapPair()
 }
 
 template <typename TKey, typename TValue>
+bool VectorHashMapPair<TKey, TValue>::is_empty() const
+{
+	return values.is_empty();
+}
+
+template <typename TKey, typename TValue>
 bool VectorHashMapPair<TKey, TValue>::has(TKey p_key) const
 {
 	return values_cache.has(p_key);
